@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -20,6 +19,8 @@ return new class extends Migration
             $table->string('postal_code', 10); // Código postal
             $table->string('province', 100); // Provincia
             $table->string('email', 255)->nullable(); // Email del cliente (opcional)
+            $table->unsignedBigInteger('company_id'); // Relación con la empresa
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->timestamps(); // created_at y updated_at
         });
     }

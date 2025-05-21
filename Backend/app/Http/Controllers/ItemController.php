@@ -21,28 +21,23 @@ class ItemController extends Controller
 
     // Crear un nuevo ítem
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-        ]);
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'company_id' => 'required|exists:companies,id', // <-- Añade esta validación
+    ]);
 
-        $companyId = $request->user()->company_id;
+    $item = Item::create([
+        'company_id' => $validated['company_id'],
+        'name' => $validated['name'],
+        'description' => $validated['description'] ?? null,
+        'price' => $validated['price'],
+    ]);
 
-        if (!$companyId) {
-            return response()->json(['error' => 'El usuario no está asociado a ninguna empresa.'], 403);
-        }
-
-        $item = Item::create([
-            'company_id' => $companyId,
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'price' => $validated['price'],
-        ]);
-
-        return response()->json($item, 201);
-    }
+    return response()->json($item, 201);
+}
 
     // Mostrar un ítem específico
     public function show(Request $request, Item $item)
@@ -89,4 +84,10 @@ class ItemController extends Controller
 
         return response()->noContent();
     }
+    public function itemsByCompany(Request $request, $companyId)
+{
+    // Opcional: puedes comprobar si el usuario tiene acceso a esa empresa
+    $items = Item::where('company_id', $companyId)->get();
+    return response()->json($items);
+}
 }

@@ -19,6 +19,7 @@ class Client extends Model
         'postal_code',
         'province',
         'email',
+        'company_id',
     ];
 
     public function invoices()

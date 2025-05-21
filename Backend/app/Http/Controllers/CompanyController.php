@@ -7,37 +7,48 @@ use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    public function index(Request $request)
+     public function index(Request $request)
     {
-        $companies = Company::where('created_by', $request->user()->id)->get();
+        $companies = Company::where('owner_id', $request->user()->id)->get();
         return response()->json(['companies' => $companies], 200);
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'legal_name' => 'nullable|string|max:255',
-            'cif' => 'required|string|max:50|unique:companies,cif',
-            'email' => 'required|email|max:255|unique:companies,email',
-            'telefono' => 'nullable|string|max:20',
-        ]);
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'legal_name' => 'nullable|string|max:255',
+        'cif' => 'required|string|max:50|unique:companies,cif',
+        'email' => 'required|email|max:255|unique:companies,email',
+        'telefono' => 'nullable|string|max:20',
+        'fiscal_address' => 'nullable|string|max:255',
+        'social_address' => 'nullable|string|max:255',
+        'city' => 'nullable|string|max:100',
+        'postal_code' => 'nullable|string|max:10',
+        'province' => 'nullable|string|max:100',
+        'invoice_prefix' => 'nullable|string|max:10',
+    ]);
 
-        $company = Company::create([
-            'name' => $validated['name'],
-            'legal_name' => $validated['legal_name'],
-            'cif' => $validated['cif'],
-            'email' => $validated['email'],
-            'telefono' => $validated['telefono'],
-            'created_by' => auth()->id(),
-        ]);
+    $company = Company::create(array_merge(
+        $validated,
+        ['owner_id' => auth()->id()]
+    ));
 
-        return response()->json(['company' => $company], 201);
-    }
+    // Crear relación en user_roles como gerente (rol_id = 2)
+    \DB::table('user_roles')->insert([
+        'user_id' => auth()->id(),
+        'role_id' => 2, // gerente
+        'company_id' => $company->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return response()->json(['company' => $company], 201);
+}
 
     public function show(Request $request, Company $company)
     {
-        if ($company->created_by !== $request->user()->id) {
+        if ($company->owner_id !== $request->user()->id) {
             return response()->json(['error' => 'No tienes permiso para ver esta compañía.'], 403);
         }
 
@@ -46,7 +57,7 @@ class CompanyController extends Controller
 
     public function update(Request $request, Company $company)
     {
-        if ($company->created_by !== $request->user()->id) {
+        if ($company->owner_id !== $request->user()->id) {
             return response()->json(['error' => 'No tienes permiso para actualizar esta compañía.'], 403);
         }
 
@@ -65,7 +76,7 @@ class CompanyController extends Controller
 
     public function destroy(Request $request, Company $company)
     {
-        if ($company->created_by !== $request->user()->id) {
+        if ($company->owner_id !== $request->user()->id) {
             return response()->json(['error' => 'No tienes permiso para eliminar esta compañía.'], 403);
         }
 
@@ -73,4 +84,11 @@ class CompanyController extends Controller
 
         return response()->json(['message' => 'Compañía eliminada exitosamente.'], 200);
     }
+
+    public function myCompanies(Request $request)
+{
+    // Devuelve todas las compañías asociadas al usuario (por user_roles)
+    $companies = $request->user()->companies()->get();
+    return response()->json(['companies' => $companies], 200);
+}
 }

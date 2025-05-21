@@ -1,204 +1,258 @@
 import React, { useState, useEffect } from 'react';
-import { getClients, getItems, getTaxes, createInvoice } from '../services/apiservices';
+import { getClients, getTaxes, createInvoice, getItemsByCompany } from '../services/apiservices';
 
 const InvoiceForm: React.FC = () => {
-  const [clients, setClients] = useState([]);
-  const [items, setItems] = useState<{ id: number; name: string }[]>([]);
+  const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
+  const [clientQuery, setClientQuery] = useState('');
+  const [filteredClients, setFilteredClients] = useState<{ id: number; name: string }[]>([]);
+  const [selectedClient, setSelectedClient] = useState<{ id: number; name: string } | null>(null);
+
+  const [items, setItems] = useState<{ id: string; name: string; price: number; company_id: number }[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState<{ id: string; quantity: number }[]>([]);
+
+  const [customItems, setCustomItems] = useState<{ description: string; quantity: number; unit_price: number }[]>([]);
+
   const [taxes, setTaxes] = useState<{ id: number; name: string; percentage: number }[]>([]);
-  const [formData, setFormData] = useState({
-    client_id: '',
-    items: [{ id: '', quantity: 1, price: 0 }],
-    taxes: [] as { id: number; name: string; percentage: number }[], // Array de objetos con { id, name, percentage }
-    custom_items: [{ description: '', quantity: 1, unit_price: 0 }],
-    date: '',
-    operation_date: '',
-    total: 0,
-  });
+  const [selectedTaxes, setSelectedTaxes] = useState<{ id: number; name: string; percentage: number }[]>([]);
 
-  const token = localStorage.getItem('authToken'); // Obtener el token del usuario logueado
+  const [baseImponible, setBaseImponible] = useState(0);
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [total, setTotal] = useState(0);
 
-  // Cargar clientes, ítems e impuestos desde el backend
+  const [date, setDate] = useState('');
+  const [operationDate, setOperationDate] = useState('');
+
+  const token = localStorage.getItem('authToken');
+  const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Solo carga los ítems de la empresa seleccionada
+  useEffect(() => {
+    if (selectedCompany?.id && token) {
+      getItemsByCompany(selectedCompany.id, token)
+        .then(data => {
+          // Forzar id a string y price a número por seguridad
+          setItems(
+            data.map((item: any) => ({
+              ...item,
+              id: String(item.id),
+              price: Number(item.price),
+            }))
+          );
+        })
+        .catch(console.error);
+    }
+  }, [selectedCompany?.id, token]);
+
+  // Cargar clientes e impuestos solo una vez
   useEffect(() => {
     if (token) {
       getClients(token).then(setClients).catch(console.error);
-      getItems(token).then(setItems).catch(console.error);
       getTaxes(token).then(setTaxes).catch(console.error);
     }
   }, [token]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleItemChange = (index: number, field: string, value: string | number) => {
-    const updatedItems = [...formData.items];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setFormData({ ...formData, items: updatedItems });
-  };
-
-  const addItem = () => {
-    setFormData({
-      ...formData,
-      items: [...formData.items, { id: '', quantity: 1, price: 0 }],
-    });
-  };
-
-  const removeItem = (index: number) => {
-    const updatedItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: updatedItems });
-  };
-
-  const handleCustomItemChange = (index: number, field: string, value: string | number) => {
-    const updatedCustomItems = [...formData.custom_items];
-    updatedCustomItems[index] = { ...updatedCustomItems[index], [field]: value };
-    setFormData({ ...formData, custom_items: updatedCustomItems });
-  };
-
-  const addCustomItem = () => {
-    setFormData({
-      ...formData,
-      custom_items: [...formData.custom_items, { description: '', quantity: 1, unit_price: 0 }],
-    });
-  };
-
-  const removeCustomItem = (index: number) => {
-    const updatedCustomItems = formData.custom_items.filter((_, i) => i !== index);
-    setFormData({ ...formData, custom_items: updatedCustomItems });
-  };
-
-  const calculateTotal = () => {
-    const itemTotal = formData.items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
+  // Filtrar clientes según lo que escribe el usuario
+  useEffect(() => {
+    setFilteredClients(
+      clients.filter((c) => c.name.toLowerCase().includes(clientQuery.toLowerCase()))
     );
-    const customItemTotal = formData.custom_items.reduce(
-      (sum, item) => sum + item.quantity * item.unit_price,
-      0
-    );
-    const taxTotal = formData.taxes.reduce(
-      (sum, tax: { id: number; name: string; percentage: number }) => sum + (itemTotal + customItemTotal) * (tax.percentage / 100),
+  }, [clientQuery, clients]);
+
+  // Calcular base imponible, impuestos y total
+  useEffect(() => {
+    // Suma de ítems reutilizables
+    const itemsTotal = invoiceItems.reduce((sum, invItem) => {
+      if (!invItem.id) return sum;
+      const item = items.find((i) => i.id === invItem.id);
+      return sum + (item ? item.price * invItem.quantity : 0);
+    }, 0);
+
+    // Suma de ítems personalizados
+    const customTotal = customItems.reduce(
+      (sum, item) => sum + item.unit_price * item.quantity,
       0
     );
 
-    setFormData({ ...formData, total: itemTotal + customItemTotal + taxTotal });
+    // Total con impuestos incluidos
+    const totalFactura = itemsTotal + customTotal;
+
+    // Suma de porcentajes de impuestos
+    const porcentajeTotalImpuestos = selectedTaxes.reduce(
+      (sum, tax) => sum + tax.percentage,
+      0
+    );
+
+    // Base imponible y total impuestos
+    const base =
+      porcentajeTotalImpuestos > 0
+        ? totalFactura / (1 + porcentajeTotalImpuestos / 100)
+        : totalFactura;
+    const impuestos = totalFactura - base;
+
+    setBaseImponible(base);
+    setTaxAmount(impuestos);
+    setTotal(totalFactura);
+  }, [invoiceItems, customItems, selectedTaxes, items]);
+
+  // Handlers
+  const handleClientInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setClientQuery(e.target.value);
+    setSelectedClient(null);
+  };
+
+  const handleSelectClient = (client: { id: number; name: string }) => {
+    setSelectedClient(client);
+    setClientQuery(client.name);
+    setFilteredClients([]);
+  };
+
+  const handleAddInvoiceItem = () => {
+    setInvoiceItems([...invoiceItems, { id: '', quantity: 1 }]);
+  };
+
+  const handleInvoiceItemChange = (index: number, field: string, value: unknown) => {
+    const updated = [...invoiceItems];
+    if (field === 'id') {
+      updated[index] = { ...updated[index], id: value ? String(value) : '' };
+    } else if (field === 'quantity') {
+      updated[index] = { ...updated[index], quantity: Number(value) || 1 };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setInvoiceItems(updated);
+  };
+
+  const handleRemoveInvoiceItem = (index: number) => {
+    setInvoiceItems(invoiceItems.filter((_, i) => i !== index));
+  };
+
+  const handleAddCustomItem = () => {
+    setCustomItems([...customItems, { description: '', quantity: 1, unit_price: 0 }]);
+  };
+
+  const handleCustomItemChange = (index: number, field: string, value: unknown) => {
+    const updated = [...customItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomItems(updated);
+  };
+
+  const handleRemoveCustomItem = (index: number) => {
+    setCustomItems(customItems.filter((_, i) => i !== index));
+  };
+
+  const handleAddTax = (taxId: number) => {
+    const tax = taxes.find((t) => t.id === taxId);
+    if (tax && !selectedTaxes.some((t) => t.id === taxId)) {
+      setSelectedTaxes([...selectedTaxes, tax]);
+    }
+  };
+
+  const handleRemoveTax = (index: number) => {
+    setSelectedTaxes(selectedTaxes.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {
-      console.error('No se encontró el token de autenticación.');
-      return;
-    }
+    if (!token || !selectedCompany.id || !user.id || !selectedClient) return;
 
-    try {
-      await createInvoice(
-        {
-          client_id: Number(formData.client_id),
-          items: formData.items.map((item) => ({
-            id: item.id,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          custom_items: formData.custom_items,
-          taxes: formData.taxes.map((tax) => tax.id),
-          date: formData.date,
-          operation_date: formData.operation_date,
-          total: formData.total,
-        },
-        token
-      );
-      alert('Factura creada exitosamente');
-      setFormData({
-        client_id: '',
-        items: [{ id: '', quantity: 1, price: 0 }],
-        taxes: [],
-        custom_items: [{ description: '', quantity: 1, unit_price: 0 }],
-        date: '',
-        operation_date: '',
-        total: 0,
-      });
-    } catch (error) {
-      console.error('Error al crear la factura:', error);
-      alert('Hubo un error al crear la factura.');
-    }
+    await createInvoice(
+      {
+        company_id: selectedCompany.id,
+        user_id: user.id,
+        client_id: selectedClient.id,
+        items: invoiceItems.map((item) => ({
+          id: Number(item.id),
+          quantity: item.quantity,
+          price: items.find((i) => i.id === item.id)?.price || 0,
+        })),
+        custom_items: customItems,
+        taxes: selectedTaxes.map((tax) => tax.id),
+        date,
+        operation_date: operationDate,
+        total,
+      },
+      token
+    );
+    // Limpieza de formulario aquí...
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">
       <h1 className="text-2xl font-bold mb-6">Crear Factura</h1>
 
-      {/* Seleccionar cliente */}
+      {/* Cliente con autocompletado */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Cliente</label>
-        <select
-          name="client_id"
-          value={formData.client_id}
-          onChange={handleInputChange}
+        <input
+          type="text"
+          value={clientQuery}
+          onChange={handleClientInput}
           className="w-full p-2 border border-gray-300 rounded"
-        >
-          <option value="">Seleccionar cliente</option>
-          {clients.map((client: { id: number; name: string }) => (
-            <option key={client.id} value={client.id}>
-              {client.name}
-            </option>
-          ))}
-        </select>
+          placeholder="Buscar cliente..."
+        />
+        {clientQuery.length > 0 && filteredClients.length > 0 && (
+          <ul className="border border-gray-300 bg-white absolute z-10 w-full">
+            {filteredClients.map((client) => (
+              <li
+                key={client.id}
+                className="p-2 hover:bg-blue-100 cursor-pointer"
+                onClick={() => handleSelectClient(client)}
+              >
+                {client.name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Ítems reutilizables */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Ítems</label>
-        {formData.items.map((item, index) => (
-          <div key={index} className="flex items-center space-x-4 mb-2">
-            <div>
-            <p>Descripción</p>
-            <select
-              value={item.id}
-              onChange={(e) => handleItemChange(index, 'id', e.target.value)}
-              className="flex-1 p-2 border border-gray-300 rounded"
-            >
-              <option value="">Seleccionar ítem</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+        {invoiceItems.map((invItem, index) => {
+          const itemObj = items.find((i) => i.id === invItem.id);
+          // Depuración: descomenta la siguiente línea si necesitas ver los valores
+          // console.log('invItem.id:', invItem.id, 'itemObj:', itemObj, 'items:', items);
+          return (
+            <div key={index} className="flex items-center space-x-4 mb-2">
+              <select
+                value={invItem.id === undefined ? "" : String(invItem.id)}
+                onChange={(e) => handleInvoiceItemChange(index, 'id', e.target.value)}
+                className="p-2 border border-gray-300 rounded"
+              >
+                <option value="">Seleccionar ítem</option>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                min={1}
+                value={invItem.quantity}
+                onChange={(e) => handleInvoiceItemChange(index, 'quantity', Number(e.target.value))}
+                className="w-24 p-2 border border-gray-300 rounded"
+                placeholder="Cantidad"
+              />
+              <span>
+                Precio: {itemObj && typeof itemObj.price === 'number'
+                  ? (itemObj.price * invItem.quantity).toFixed(2)
+                  : '0.00'} €
+              </span>
+              <button
+                type="button"
+                onClick={() => handleRemoveInvoiceItem(index)}
+                className="bg-red-500 text-white px-2 py-1 rounded"
+              >
+                Eliminar
+              </button>
             </div>
-            <div>
-               <p>Cantidad</p>
-            <input
-              type="number"
-              placeholder="Cantidad"
-              value={item.quantity}
-              onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
-              className="w-24 p-2 border border-gray-300 rounded"
-            /></div>
-            <div>
-            <p>Precio Unitario</p>
-            <input
-              type="number"
-              placeholder="Precio"
-              value={item.price}
-              onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))}
-              className="w-24 p-2 border border-gray-300 rounded"
-            /></div>
-            <button
-              type="button"
-              onClick={() => removeItem(index)}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Eliminar
-            </button>
-          </div>
-        ))}
+          );
+        })}
         <button
           type="button"
-          onClick={addItem}
+          onClick={handleAddInvoiceItem}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Añadir Ítem
@@ -208,38 +262,35 @@ const InvoiceForm: React.FC = () => {
       {/* Ítems personalizados */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Ítems Personalizados</label>
-        {formData.custom_items.map((item, index) => (
+        {customItems.map((item, index) => (
           <div key={index} className="flex items-center space-x-4 mb-2">
-            <div>
-            <p>Descripción</p>
             <input
               type="text"
-              placeholder=""
+              placeholder="Descripción"
               value={item.description}
               onChange={(e) => handleCustomItemChange(index, 'description', e.target.value)}
               className="flex-1 p-2 border border-gray-300 rounded"
-            /></div>
-            <div>
-               <p>Cantidad</p>
+            />
             <input
-              type="text"
+              type="number"
+              min={1}
               placeholder="Cantidad"
               value={item.quantity}
               onChange={(e) => handleCustomItemChange(index, 'quantity', Number(e.target.value))}
               className="w-24 p-2 border border-gray-300 rounded"
-            /></div>
-            <div>
-            <p>Precio Unitario</p>
+            />
             <input
-              type="text"
+              type="number"
+              min={0}
+              step={0.01}
               placeholder="Precio Unitario"
               value={item.unit_price}
               onChange={(e) => handleCustomItemChange(index, 'unit_price', Number(e.target.value))}
               className="w-24 p-2 border border-gray-300 rounded"
-            /></div>
+            />
             <button
               type="button"
-              onClick={() => removeCustomItem(index)}
+              onClick={() => handleRemoveCustomItem(index)}
               className="bg-red-500 text-white px-2 py-1 rounded"
             >
               Eliminar
@@ -248,60 +299,39 @@ const InvoiceForm: React.FC = () => {
         ))}
         <button
           type="button"
-          onClick={addCustomItem}
+          onClick={handleAddCustomItem}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Añadir Ítem Personalizado
         </button>
       </div>
 
-      {/* Seleccionar impuestos */}
+      {/* Impuestos */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Impuestos</label>
-        <div className="flex items-center space-x-4">
-          <select
-            name="tax"
-            onChange={(e) => {
-              const selectedTax = taxes.find((tax: { id: number; name: string; percentage: number }) => tax.id === Number(e.target.value));
-              if (selectedTax) {
-                setFormData({
-                  ...formData,
-                  taxes: [...formData.taxes, { id: selectedTax.id, name: selectedTax.name, percentage: selectedTax.percentage }],
-                });
-              }
-            }}
-            className="flex-1 p-2 border border-gray-300 rounded"
-          >
-            <option value="">Seleccionar impuesto</option>
-            {taxes.map((tax: { id: number; name: string; percentage: number }) => (
-              <option key={tax.id} value={tax.id}>
+        <select
+          onChange={(e) => {
+            const taxId = Number(e.target.value);
+            if (taxId) handleAddTax(taxId);
+          }}
+          className="p-2 border border-gray-300 rounded"
+        >
+          <option value="">Seleccionar impuesto</option>
+          {taxes.map((tax) => (
+            <option key={tax.id} value={tax.id}>
+              {tax.name} ({tax.percentage}%)
+            </option>
+          ))}
+        </select>
+        <div className="mt-2">
+          {selectedTaxes.map((tax, index) => (
+            <div key={tax.id} className="flex items-center space-x-2">
+              <span>
                 {tax.name} ({tax.percentage}%)
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={() => {
-              const dropdown = document.querySelector('select[name="tax"]') as HTMLSelectElement;
-              if (dropdown) dropdown.value = '';
-            }}
-          >
-            Añadir Impuesto
-          </button>
-        </div>
-
-        {/* Lista de impuestos añadidos */}
-        <div className="mt-4">
-          {formData.taxes.map((tax, index) => (
-            <div key={index} className="flex items-center space-x-4 mb-2">
-              <span className="flex-1">{tax.name} ({tax.percentage}%)</span>
+              </span>
               <button
                 type="button"
-                onClick={() => {
-                  const updatedTaxes = formData.taxes.filter((_, i) => i !== index);
-                  setFormData({ ...formData, taxes: updatedTaxes });
-                }}
+                onClick={() => handleRemoveTax(index)}
                 className="bg-red-500 text-white px-2 py-1 rounded"
               >
                 Eliminar
@@ -311,24 +341,39 @@ const InvoiceForm: React.FC = () => {
         </div>
       </div>
 
-      {/* Total */}
+      {/* Desglose de totales */}
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">Total</label>
+        <label className="block text-gray-700 font-bold mb-2">Desglose</label>
+        <div>
+          Base imponible: {baseImponible.toFixed(2)} €
+        </div>
+        <div>
+          Impuestos: {taxAmount.toFixed(2)} €
+        </div>
+        <div className="font-bold">
+          Total factura: {total.toFixed(2)} €
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 font-bold mb-2">Fecha</label>
         <input
-          type="number"
-          value={formData.total}
-          readOnly
-          className="w-full p-2 border border-gray-300 rounded bg-gray-100"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 font-bold mb-2">Fecha operación</label>
+        <input
+          type="date"
+          value={operationDate}
+          onChange={(e) => setOperationDate(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
 
-      <button
-        type="button"
-        onClick={calculateTotal}
-        className="bg-green-500 text-white px-4 py-2 rounded mr-4"
-      >
-        Calcular Total
-      </button>
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded"

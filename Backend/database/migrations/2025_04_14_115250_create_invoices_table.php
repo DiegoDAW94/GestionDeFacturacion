@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -20,9 +19,9 @@ return new class extends Migration
             $table->date('date'); // Fecha de emisión de la factura
             $table->date('operation_date')->nullable(); // Fecha de la operación (opcional)
             $table->json('custom_items')->nullable(); // Ítems específicos de la factura (opcional)
-            $table->decimal('base_amount', 10, 2); // Base imponible
-            $table->decimal('tax_amount', 10, 2); // Cuota tributaria
-            $table->decimal('total', 10, 2); // Total a pagar
+            $table->decimal('base_amount', 10, 2)->default(0);
+            $table->decimal('tax_amount', 10, 2)->default(0);
+            $table->decimal('total', 10, 2)->default(0);
             $table->timestamps(); // created_at y updated_at
 
             // Foreign keys

@@ -17,7 +17,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'company_id', // Puede ser null inicialmente
     ];
 
     protected $hidden = [
@@ -25,10 +24,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
+   public function companies()
+{
+    return $this->belongsToMany(Company::class, 'user_roles')
+                ->withPivot('role_id')
+                ->withTimestamps();
+}
 
     public function roles()
     {

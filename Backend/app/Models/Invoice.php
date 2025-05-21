@@ -25,8 +25,8 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'custom_items' => 'array', // Manejar el campo JSON como un array
-    ];
+    'custom_items' => 'array',
+];
 
     public function company()
     {

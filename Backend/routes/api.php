@@ -33,3 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('users/{user}/delete-role', [UserController::class, 'deleteRole']);
     
 });
+
+Route::middleware('auth:sanctum')->get('/my-companies', [CompanyController::class, 'myCompanies']);
+
+Route::middleware('auth:sanctum')->get('/companies/{company}/items', [ItemController::class, 'itemsByCompany']);

@@ -70,12 +70,6 @@ const SideNavBar = () => {
             </Link>
           </li>
           <li className="p-4 hover:bg-gray-700 flex items-center">
-            <Link to="/taxes" className="flex items-center w-full">
-              <AttachMoneyIcon />
-              {isOpen && <span className="ml-2">Impuestos</span>}
-            </Link>
-          </li>
-          <li className="p-4 hover:bg-gray-700 flex items-center">
             <Link to="/create-company" className="flex items-center w-full">
               <BusinessIcon />
               {isOpen && <span className="ml-2">Compañías</span>}

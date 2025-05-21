@@ -316,18 +316,29 @@ export const getClients = async (token: string) => {
     return handleResponse(response);
   };
   
-  export const createInvoice = async (invoiceData: { client_id: number; items: object[] }, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/invoices`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(invoiceData),
-    });
-    return handleResponse(response);
-  };
-  
+  export interface InvoicePayload {
+  company_id: number;
+  user_id: number;
+  client_id: number;
+  items: { id: number; quantity: number; price: number }[];
+  custom_items?: { description: string; quantity: number; unit_price: number }[];
+  taxes: number[];
+  date: string;
+  operation_date?: string;
+  total: number;
+}
+
+export const createInvoice = async (invoiceData: InvoicePayload, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/invoices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(invoiceData),
+  });
+  return handleResponse(response);
+};
   export const updateInvoice = async (invoiceId: number, invoiceData: { client_id: number; items: object[] }, token: string) => {
     const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
       method: 'PUT',
@@ -364,6 +375,15 @@ export const getClients = async (token: string) => {
     });
     return handleResponse(response);
   };
+  export const getItemsByCompany = async (companyId: number, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/items`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error('Error al obtener los ítems');
+  return response.json();
+};
   
   export const createItem = async (itemData: { name: string; price: number }, token: string) => {
     const response = await fetch(`${API_BASE_URL}/items`, {

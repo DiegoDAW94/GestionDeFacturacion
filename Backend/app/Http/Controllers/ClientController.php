@@ -22,6 +22,7 @@ class ClientController extends Controller
             'postal_code' => 'required|string|max:10',
             'province' => 'required|string|max:100',
             'email' => 'nullable|email|max:255',
+            'company_id' => 'required|exists:companies,id',
         ]);
 
         return Client::create($validated);

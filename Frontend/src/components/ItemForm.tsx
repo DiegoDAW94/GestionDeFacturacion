@@ -12,6 +12,8 @@ const ItemForm: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const token = localStorage.getItem('authToken'); // Obtener el token del usuario logueado
+const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -22,35 +24,40 @@ const ItemForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
+  e.preventDefault();
+  setError(null);
+  setSuccess(null);
 
-    if (!token) {
-      setError('No se encontró el token de autenticación.');
-      return;
-    }
+  if (!token) {
+    setError('No se encontró el token de autenticación.');
+    return;
+  }
+  if (!selectedCompany.id) {
+    setError('No hay empresa seleccionada.');
+    return;
+  }
 
-    try {
-      // Convertir el precio a número antes de enviarlo
-      const itemData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-      };
+  try {
+    const itemData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      company_id: selectedCompany.id, // <-- Añadido aquí
+    };
 
-      await createItem(itemData, token);
-      setSuccess('Ítem añadido exitosamente.');
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-      });
-    } catch (err) {
-      console.error('Error al añadir el ítem:', err);
-      setError('Hubo un error al añadir el ítem.');
-    }
-  };
+    await createItem(itemData, token);
+    setSuccess('Ítem añadido exitosamente.');
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+    });
+  } catch (err) {
+    console.error('Error al añadir el ítem:', err);
+    setError('Hubo un error al añadir el ítem.');
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">

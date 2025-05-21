@@ -3,11 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-// import Dashboard from './pages/Dashboard';
-// import Clients from './pages/Clients';
-// import Invoices from './pages/Invoices';
-// import Items from './pages/Items';
-// import Taxes from './pages/Taxes';
+import Clients from './pages/Clients';
 import NotFound from './pages/NotFound';
 import MainLayout from './components/MainLayout';
 import Invoice from './pages/Invoice';
@@ -56,6 +52,14 @@ const AppRouter: React.FC = () => {
           element={
             <MainLayout>
               <Company />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/clients"
+          element={
+            <MainLayout>
+              <Clients />
             </MainLayout>
           }
         />

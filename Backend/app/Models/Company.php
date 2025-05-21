@@ -11,27 +11,28 @@ class Company extends Model
 
     protected $table = 'companies';
 
-    protected $fillable = [
-        'name',
-        'legal_name',
-        'cif',
-        'fiscal_address',
-        'social_address',
-        'city',
-        'postal_code',
-        'province',
-        'email',
-        'telefono',
-        'invoice_prefix',
-    ];
+   protected $fillable = [
+    'name',
+    'legal_name',
+    'cif',
+    'fiscal_address',
+    'social_address',
+    'city',
+    'postal_code',
+    'province',
+    'email',
+    'telefono',
+    'invoice_prefix',
+    'owner_id',
+];
 
     public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by'); // Usuario que creó la empresa
-    }
+   public function owner()
+{
+    return $this->belongsTo(User::class, 'owner_id');
+}
 }

@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('name', 255); // name VARCHAR(255) NOT NULL
             $table->string('email', 255)->unique(); // email VARCHAR(255) UNIQUE NOT NULL
             $table->text('password'); // password TEXT NOT NULL
-            $table->unsignedBigInteger('company_id')->nullable(); // company_id INT NULL
-            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade'); // FOREIGN KEY
             $table->timestamps(); // created_at and updated_at
         });
     }
