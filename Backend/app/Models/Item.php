@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\InvoiceItem;
 
 class Item extends Model
 {
@@ -29,4 +30,9 @@ class Item extends Model
                     ->withPivot('quantity', 'price')
                     ->withTimestamps();
     }
+
+    public function invoiceItems()
+    {
+    return $this->hasMany(\App\Models\InvoiceItem::class);
+}
 }

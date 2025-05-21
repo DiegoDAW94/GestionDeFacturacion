@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Invoice extends Model
 {
     use HasFactory;
@@ -52,8 +53,10 @@ class Invoice extends Model
 
     public function taxes()
     {
-        return $this->belongsToMany(Tax::class, 'invoice_taxes')
-                    ->withPivot('amount')
-                    ->withTimestamps();
+        return $this->belongsToMany(Tax::class, 'invoice_taxes');
     }
+  public function invoiceItems()
+{
+    return $this->hasMany(InvoiceItem::class);
+}
 }

@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { createItem } from '../services/apiservices';
+import React, { useState, useEffect } from 'react';
+import { createItem, updateItem } from '../services/apiservices';
 
-const ItemForm: React.FC = () => {
+interface ItemFormProps {
+  item?: any; // El ítem a editar, o undefined/null para crear
+  onSaved?: () => void; // Callback tras guardar
+}
+
+const ItemForm: React.FC<ItemFormProps> = ({ item, onSaved }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -11,9 +16,27 @@ const ItemForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const token = localStorage.getItem('authToken'); // Obtener el token del usuario logueado
-const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
+  const token = localStorage.getItem('authToken');
+  const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
 
+  // Si hay item, inicializa el formulario con sus datos
+  useEffect(() => {
+    if (item) {
+      setFormData({
+        name: item.name || '',
+        description: item.description || '',
+        price: item.price !== undefined ? String(item.price) : '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+      });
+    }
+    setError(null);
+    setSuccess(null);
+  }, [item]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -24,45 +47,45 @@ const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
-  setSuccess(null);
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
-  if (!token) {
-    setError('No se encontró el token de autenticación.');
-    return;
-  }
-  if (!selectedCompany.id) {
-    setError('No hay empresa seleccionada.');
-    return;
-  }
+    if (!token) {
+      setError('No se encontró el token de autenticación.');
+      return;
+    }
+    if (!selectedCompany.id) {
+      setError('No hay empresa seleccionada.');
+      return;
+    }
 
-  try {
-    const itemData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      company_id: selectedCompany.id, // <-- Añadido aquí
-    };
+    try {
+      const itemData = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        company_id: selectedCompany.id,
+      };
 
-    await createItem(itemData, token);
-    setSuccess('Ítem añadido exitosamente.');
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-    });
-  } catch (err) {
-    console.error('Error al añadir el ítem:', err);
-    setError('Hubo un error al añadir el ítem.');
-  }
-};
+      if (item && item.id) {
+        await updateItem(item.id, itemData, token);
+        setSuccess('Ítem actualizado exitosamente.');
+      } else {
+        await createItem(itemData, token);
+        setSuccess('Ítem añadido exitosamente.');
+        setFormData({ name: '', description: '', price: '' });
+      }
 
+      if (onSaved) onSaved();
+    } catch (err) {
+      setError('Hubo un error al guardar el ítem.');
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">
-      <h1 className="text-2xl font-bold mb-6">Añadir Ítem</h1>
-
+      <h1 className="text-2xl font-bold mb-6">{item ? 'Editar Ítem' : 'Añadir Ítem'}</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
 
@@ -109,7 +132,7 @@ const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
-        Añadir Ítem
+        {item ? 'Actualizar Ítem' : 'Añadir Ítem'}
       </button>
     </form>
   );

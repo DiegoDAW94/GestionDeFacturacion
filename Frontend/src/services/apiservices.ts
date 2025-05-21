@@ -1,13 +1,17 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Función para manejar errores de respuesta
-const handleResponse = async (response: Response) => {
+export async function handleResponse(response: Response) {
+  if (response.status === 204) {
+    // No Content, no hay error
+    return;
+  }
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || `Error: ${response.status}`);
+    const error = await response.json().catch(() => ({}));
+    throw error || { message: 'Error desconocido' };
   }
   return response.json();
-};
+}
 
 // Auth
 export const register = async (userData: { name: string; email: string; password: string }) => {
@@ -397,17 +401,21 @@ export const createInvoice = async (invoiceData: InvoicePayload, token: string) 
     return handleResponse(response);
   };
   
-  export const updateItem = async (itemId: number, itemData: { name: string; price: number }, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/items/${itemId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(itemData),
-    });
-    return handleResponse(response);
-  };
+  export const updateItem = async (
+  itemId: number,
+  itemData: { name?: string; description?: string; price?: number },
+  token: string
+) => {
+  const response = await fetch(`${API_BASE_URL}/items/${itemId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(itemData),
+  });
+  return handleResponse(response);
+};
   
   export const deleteItem = async (itemId: number, token: string) => {
     const response = await fetch(`${API_BASE_URL}/items/${itemId}`, {

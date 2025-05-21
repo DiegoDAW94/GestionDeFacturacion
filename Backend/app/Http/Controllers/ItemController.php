@@ -52,34 +52,23 @@ class ItemController extends Controller
     }
 
     // Actualizar un ítem existente
-    public function update(Request $request, Item $item)
-    {
-        $companyId = $request->user()->company_id;
+   public function update(Request $request, Item $item)
+{
+    $validated = $request->validate([
+        'name' => 'string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'numeric|min:0',
+    ]);
 
-        if ($item->company_id !== $companyId) {
-            return response()->json(['error' => 'No tienes permiso para actualizar este ítem.'], 403);
-        }
+    $item->update($validated);
 
-        $validated = $request->validate([
-            'name' => 'string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'numeric|min:0',
-        ]);
-
-        $item->update($validated);
-
-        return $item;
-    }
+    return $item;
+}
 
     // Eliminar un ítem
     public function destroy(Request $request, Item $item)
     {
-        $companyId = $request->user()->company_id;
-
-        if ($item->company_id !== $companyId) {
-            return response()->json(['error' => 'No tienes permiso para eliminar este ítem.'], 403);
-        }
-
+        
         $item->delete();
 
         return response()->noContent();

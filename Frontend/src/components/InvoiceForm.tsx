@@ -26,6 +26,10 @@ const InvoiceForm: React.FC = () => {
   const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  const [success, setSuccess] = useState<string | null>(null);
+const [error, setError] = useState<string | null>(null);
+
+
   // Solo carga los ítems de la empresa seleccionada
   useEffect(() => {
     if (selectedCompany?.id && token) {
@@ -153,9 +157,28 @@ const InvoiceForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || !selectedCompany.id || !user.id || !selectedClient) return;
+  e.preventDefault();
+  setError(null);
+  setSuccess(null);
 
+  if (!token) {
+    setError('No se encontró el token de autenticación.');
+    return;
+  }
+  if (!selectedCompany.id) {
+    setError('No hay empresa seleccionada.');
+    return;
+  }
+  if (!user.id) {
+    setError('No hay usuario autenticado.');
+    return;
+  }
+  if (!selectedClient) {
+    setError('Selecciona un cliente.');
+    return;
+  }
+
+  try {
     await createInvoice(
       {
         company_id: selectedCompany.id,
@@ -174,13 +197,30 @@ const InvoiceForm: React.FC = () => {
       },
       token
     );
-    // Limpieza de formulario aquí...
-  };
+    setSuccess('¡Factura creada correctamente!');
+    // Limpiar campos
+    setSelectedClient(null);
+    setClientQuery('');
+    setInvoiceItems([]);
+    setCustomItems([]);
+    setSelectedTaxes([]);
+    setDate('');
+    setOperationDate('');
+    setBaseImponible(0);
+    setTaxAmount(0);
+    setTotal(0);
+  } catch (err) {
+    setError('Hubo un error al crear la factura.');
+  }
+};
 
   return (
+    <>
+    
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">
       <h1 className="text-2xl font-bold mb-6">Crear Factura</h1>
-
+ {error && <p className="text-red-500 mb-4">{error}</p>}
+      {success && <p className="text-green-500 mb-4">{success}</p>}
       {/* Cliente con autocompletado */}
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Cliente</label>
@@ -381,6 +421,7 @@ const InvoiceForm: React.FC = () => {
         Crear Factura
       </button>
     </form>
+    </>
   );
 };
 
