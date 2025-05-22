@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { createCompany } from '../services/apiservices';
 
-const CompanyForm: React.FC = () => {
+interface CompanyFormProps {
+  company?: any;
+  onSaved?: (newCompany: any) => void;
+}
+
+const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSaved }) => {
   const [formData, setFormData] = useState({
     name: '',
     legal_name: '',
@@ -30,37 +35,41 @@ const CompanyForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
+  e.preventDefault();
+  setError(null);
+  setSuccess(null);
 
-    if (!token) {
-      setError('No se encontró el token de autenticación.');
-      return;
-    }
+  if (!token) {
+    setError('No se encontró el token de autenticación.');
+    return;
+  }
 
-    try {
-      // Enviar todos los datos al backend
-      await createCompany(formData, token);
-      setSuccess('Compañía creada exitosamente.');
-      setFormData({
-        name: '',
-        legal_name: '',
-        cif: '',
-        fiscal_address: '',
-        social_address: '',
-        city: '',
-        postal_code: '',
-        province: '',
-        email: '',
-        telefono: '',
-        invoice_prefix: '',
-      });
-    } catch (err) {
-      console.error('Error al crear la compañía:', err);
-      setError('Hubo un error al crear la compañía.');
+  try {
+    // Enviar todos los datos al backend y obtener la nueva compañía creada
+    const newCompany = await createCompany(formData, token);
+    setSuccess('Compañía creada exitosamente.');
+    setFormData({
+      name: '',
+      legal_name: '',
+      cif: '',
+      fiscal_address: '',
+      social_address: '',
+      city: '',
+      postal_code: '',
+      province: '',
+      email: '',
+      telefono: '',
+      invoice_prefix: '',
+    });
+    // Llama a onSaved pasando la nueva compañía creada
+    if (typeof onSaved === 'function') {
+      onSaved(newCompany);
     }
-  };
+  } catch (err) {
+    console.error('Error al crear la compañía:', err);
+    setError('Hubo un error al crear la compañía.');
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">

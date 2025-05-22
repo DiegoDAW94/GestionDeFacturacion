@@ -53,11 +53,13 @@ function DataTable<T extends { [key: string]: unknown }>({
               };
               return (
                 <tr key={idx} className="hover:bg-gray-50">
-                  {columns.map((col) => (
-                    <td key={String(col.key)} className="px-4 py-2 border-b">
-                      {String(row[col.key] ?? '')}
-                    </td>
-                  ))}
+                 {columns.map((col) => (
+  <td key={String(col.key)} className="px-4 py-2 border-b">
+    {typeof row[col.key] === 'object' && row[col.key] !== null
+      ? row[col.key].name
+      : String(row[col.key] ?? '')}
+  </td>
+))}
                   <td className="border-b w-10 text-center p-0">
                     <RowActionsMenu
                       onEdit={handleEditRow}

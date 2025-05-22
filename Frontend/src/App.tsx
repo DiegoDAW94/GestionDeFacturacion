@@ -9,6 +9,7 @@ import MainLayout from './components/MainLayout';
 import Invoice from './pages/Invoice';
 import Items from './pages/Items';
 import Company from './pages/Company';
+import DashBoard from './pages/DashBoard';
 
 const AppRouter: React.FC = () => {
   return (
@@ -63,18 +64,18 @@ const AppRouter: React.FC = () => {
             </MainLayout>
           }
         />
-        {/* <Route
+         <Route
           path="/dashboard"
           element={
             <MainLayout>
-              <Dashboard />
+              <DashBoard />
             </MainLayout>
           }
         />
         
        
      
-        <Route
+        {/* <Route
           path="/taxes"
           element={
             <MainLayout>

@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 class InvoiceController extends Controller
 {
     public function index()
-    {
-        return Invoice::with(['invoiceItems', 'taxes'])->get();
-    }
+{
+    return Invoice::with(['invoiceItems', 'taxes', 'client'])->get();
+}
 
     public function store(Request $request)
     {
@@ -146,4 +146,10 @@ class InvoiceController extends Controller
 
         $invoice->save();
     }
+    public function invoicesByCompany($companyId)
+{
+    return Invoice::with(['invoiceItems', 'taxes', 'client'])
+        ->where('company_id', $companyId)
+        ->get();
+}
 }

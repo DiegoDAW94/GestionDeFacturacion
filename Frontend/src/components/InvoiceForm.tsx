@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getClients, getTaxes, createInvoice, getItemsByCompany } from '../services/apiservices';
+import { getClientsByCompany, getTaxes, createInvoice, getItemsByCompany } from '../services/apiservices';
 
 const InvoiceForm: React.FC = () => {
   const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
@@ -51,7 +51,7 @@ const [error, setError] = useState<string | null>(null);
   // Cargar clientes e impuestos solo una vez
   useEffect(() => {
     if (token) {
-      getClients(token).then(setClients).catch(console.error);
+      getClientsByCompany(selectedCompany.id, token).then(setClients).catch(console.error);
       getTaxes(token).then(setTaxes).catch(console.error);
     }
   }, [token]);

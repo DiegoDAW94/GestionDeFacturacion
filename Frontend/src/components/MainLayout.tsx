@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SideNavBar from './SideNavBar';
+import DropdownSelector from './DropdownSelector';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const navigate = useNavigate();
 
+  // Cargar usuario y compañía seleccionada al montar
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      // Cargar empresa seleccionada de localStorage o por defecto la primera
       const storedCompany = localStorage.getItem('selectedCompany');
       if (storedCompany) {
         setSelectedCompany(JSON.parse(storedCompany));
@@ -23,27 +24,38 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, []);
 
+  // Actualizar compañías y compañía seleccionada cuando cambian en el backend
   useEffect(() => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    fetch('http://127.0.0.1:8000/api/my-companies', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.companies) {
-          setUser((prev: any) => ({ ...prev, companies: data.companies }));
-          // Selecciona la primera empresa si no hay ninguna seleccionada
-          if (!selectedCompany && data.companies.length > 0) {
-            setSelectedCompany(data.companies[0]);
-            localStorage.setItem('selectedCompany', JSON.stringify(data.companies[0]));
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      fetch('http://127.0.0.1:8000/api/my-companies', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.companies) {
+            setUser((prev: any) => ({ ...prev, companies: data.companies }));
+
+            // Sincronizar selectedCompany con la nueva lista
+            const storedCompany = localStorage.getItem('selectedCompany');
+            let companyToSelect = null;
+            if (storedCompany) {
+              const storedCompanyObj = JSON.parse(storedCompany);
+              companyToSelect = data.companies.find((c: any) => c.id === storedCompanyObj.id);
+            }
+            if (!companyToSelect && data.companies.length > 0) {
+              companyToSelect = data.companies[0];
+            }
+            setSelectedCompany(companyToSelect);
+            if (companyToSelect) {
+              localStorage.setItem('selectedCompany', JSON.stringify(companyToSelect));
+            }
           }
-        }
-      });
-  }
-}, []);
+        });
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -54,14 +66,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     navigate('/login');
   };
 
-  const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const companyId = e.target.value;
-    const company = user.companies.find((c: any) => String(c.id) === companyId);
-    setSelectedCompany(company);
-    localStorage.setItem('selectedCompany', JSON.stringify(company));
-    // Aquí podrías hacer otras acciones, como recargar datos dependientes de la empresa
-  };
-
   return (
     <div className="flex h-screen">
       {/* Barra superior */}
@@ -69,23 +73,20 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <Link to="/" className="text-blue-400 text-xl font-bold hover:underline">
           Invoquio
         </Link>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center text-white space-x-4">
           {user ? (
             <>
               <span>Bienvenido, {user.name}</span>
-     {user && user.companies && user.companies.length > 0 && (
-  <select
-    value={selectedCompany?.id || ''}
-    onChange={handleCompanyChange}
-    className="text-white px-2 py-1 rounded"
-  >
-    {user.companies.map((company: any) => (
-      <option key={company.id} value={company.id}>
-        {company.name}
-      </option>
-    ))}
-  </select>
-)}
+              {user.companies && user.companies.length > 0 && (
+                <DropdownSelector
+                  options={user.companies}
+                  value={user.companies.find((c: any) => c.id === selectedCompany?.id) || null}
+                  onChange={(company) => {
+                    setSelectedCompany(company);
+                    localStorage.setItem('selectedCompany', JSON.stringify(company));
+                  }}
+                />
+              )}
               <button
                 onClick={handleLogout}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
@@ -117,7 +118,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Contenido principal */}
       <div className="flex-1 flex flex-col ml-16 mt-16">
-        <main className="flex-1 p-4 bg-gray-100">{children}</main>
+        <main className="flex-1 p-4 bg-gray-100">
+          {React.isValidElement(children)
+            ? React.cloneElement(children, {
+                selectedCompany,
+                setSelectedCompany,
+                setUser,
+                key: selectedCompany?.id,
+              })
+            : children}
+        </main>
       </div>
     </div>
   );

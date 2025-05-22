@@ -271,6 +271,13 @@ export const getClients = async (token: string) => {
     return handleResponse(response);
   };
   
+  export const getClientsByCompany = async (companyId: number, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/clients`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
   export const createClient = async (clientData: { name: string; email: string }, token: string) => {
     const response = await fetch(`${API_BASE_URL}/clients`, {
       method: 'POST',
@@ -319,6 +326,14 @@ export const getClients = async (token: string) => {
     });
     return handleResponse(response);
   };
+
+  export const getInvoicesByCompany = async (companyId: number, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/invoices`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
   
   export interface InvoicePayload {
   company_id: number;

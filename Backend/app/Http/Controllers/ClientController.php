@@ -56,4 +56,8 @@ class ClientController extends Controller
 
         return response()->noContent();
     }
+    public function clientsByCompany($companyId)
+{
+    return Client::where('company_id', $companyId)->get();
+}
 }

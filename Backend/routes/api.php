@@ -37,3 +37,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->get('/my-companies', [CompanyController::class, 'myCompanies']);
 
 Route::middleware('auth:sanctum')->get('/companies/{company}/items', [ItemController::class, 'itemsByCompany']);
+Route::middleware('auth:sanctum')->get('/companies/{company}/invoices', [InvoiceController::class, 'invoicesByCompany']);
+Route::middleware('auth:sanctum')->get('/companies/{company}/clients', [ClientController::class, 'clientsByCompany']);
