@@ -47,13 +47,19 @@ class CompanyController extends Controller
 }
 
     public function show(Request $request, Company $company)
-    {
-        if ($company->owner_id !== $request->user()->id) {
-            return response()->json(['error' => 'No tienes permiso para ver esta compañía.'], 403);
-        }
+{
+    $user = $request->user();
 
-        return response()->json(['company' => $company], 200);
+    // Permitir si es owner o si está en user_roles
+    $isAssociated = $company->owner_id === $user->id ||
+        $user->companies()->where('companies.id', $company->id)->exists();
+
+    if (!$isAssociated) {
+        return response()->json(['error' => 'No tienes permiso para ver esta compañía.'], 403);
     }
+
+    return response()->json(['company' => $company], 200);
+}
 
     public function update(Request $request, Company $company)
     {
