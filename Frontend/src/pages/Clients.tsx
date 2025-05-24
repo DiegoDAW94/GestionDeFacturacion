@@ -3,6 +3,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import ClientForm from '../components/ClientForm';
 import { getClients, deleteClient, getClientsByCompany } from '../services/apiservices';
+import { Link } from 'react-router-dom';
 
 const Clients: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -10,6 +11,12 @@ const Clients: React.FC = () => {
   const [editClient, setEditClient] = useState<any | null>(null);
   const token = localStorage.getItem('authToken');
  const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
+ const [filter, setFilter] = useState('');
+const filteredClients = clients.filter(row =>
+  Object.values(row).some(
+    value => value && value.toString().toLowerCase().includes(filter.toLowerCase())
+  )
+);
 
   useEffect(() => {
     if (selectedCompany?.id && token) {
@@ -20,7 +27,18 @@ const Clients: React.FC = () => {
   }, [selectedCompany?.id, token]);
 
   const columns = [
-    { key: 'name', label: 'Nombre' },
+    {
+      key: 'name',
+      label: 'Nombre',
+      render: (row: any) => (
+        <Link
+          to={`/clients/${row.id}`}
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          {row.name}
+        </Link>
+      ),
+    },
     { key: 'nif', label: 'NIF' },
     { key: 'fiscal_address', label: 'Dirección fiscal' },
     { key: 'email', label: 'Email' },
@@ -65,12 +83,23 @@ const Clients: React.FC = () => {
       >
         <ClientForm client={editClient} onSaved={handleSaved} />
       </Modal>
+      <input type="text" 
+      placeholder="Buscar..." 
+      value={filter}
+      onChange={e => setFilter(e.target.value)}
+      className="m-4 mb-4 px-2 py-1 border rounded w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
+/>
+      <button className="mb-4 px-4 py-2 bg-gray-300 text-gray-800 rounded" 
+        onClick={() => setFilter('')}
+        type="button">
+          Reset Filter
+      </button>
       <DataTable
-        columns={columns}
-        data={clients}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+  columns={columns}
+  data={filteredClients}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+/>
     </div>
   );
 };

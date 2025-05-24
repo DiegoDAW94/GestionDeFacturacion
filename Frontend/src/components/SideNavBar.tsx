@@ -16,6 +16,8 @@ const SideNavBar = () => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = user.id;
 
   return (
     <div
@@ -76,7 +78,7 @@ const SideNavBar = () => {
             </Link>
           </li>
           <li className="p-4 hover:bg-gray-700 flex items-center">
-            <Link to="/settings" className="flex items-center w-full">
+            <Link to={`/settings/${userId}`} className="flex items-center w-full">
               <SettingsIcon />
               {isOpen && <span className="ml-2">Configuración</span>}
             </Link>

@@ -152,4 +152,16 @@ class InvoiceController extends Controller
         ->where('company_id', $companyId)
         ->get();
 }
+
+
+public function show($id)
+{
+    $invoice = Invoice::with(['invoiceItems', 'taxes', 'client'])->find($id);
+
+    if (!$invoice) {
+        return response()->json(['error' => 'Factura no encontrada'], 404);
+    }
+
+    return $invoice;
+}
 }

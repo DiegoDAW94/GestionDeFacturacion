@@ -41,15 +41,11 @@ class ItemController extends Controller
 
     // Mostrar un ítem específico
     public function show(Request $request, Item $item)
-    {
-        $companyId = $request->user()->company_id;
+{
+    $companyId = $request->user()->company_id;
 
-        if ($item->company_id !== $companyId) {
-            return response()->json(['error' => 'No tienes permiso para ver este ítem.'], 403);
-        }
-
-        return $item;
-    }
+    return $item;
+}
 
     // Actualizar un ítem existente
    public function update(Request $request, Item $item)

@@ -10,6 +10,11 @@ import Invoice from './pages/Invoice';
 import Items from './pages/Items';
 import Company from './pages/Company';
 import DashBoard from './pages/DashBoard';
+import CompanyDetail from './components/CompanyDetail';
+import UserDetail from './components/UserDetail';
+import ClientDetail from './components/ClientDetail';
+import InvoiceDetail from './components/InvoiceDetail';
+import ItemDetail from './components/ItemDetail';
 
 const AppRouter: React.FC = () => {
   return (
@@ -73,16 +78,6 @@ const AppRouter: React.FC = () => {
           }
         />
         
-       
-     
-        {/* <Route
-          path="/taxes"
-          element={
-            <MainLayout>
-              <Taxes />
-            </MainLayout>
-          }
-        /> */}
 
         {/* Rutas sin MainLayout */}
         <Route
@@ -98,6 +93,46 @@ const AppRouter: React.FC = () => {
         <Route
           path="*"
           element={<NotFound />}
+        />
+         <Route
+          path="/companies/:id"
+          element={
+            <MainLayout>
+              <CompanyDetail />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/settings/:id"
+          element={
+            <MainLayout>
+              <UserDetail />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/clients/:id"
+          element={
+            <MainLayout>
+              <ClientDetail />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/invoices/:id"
+          element={
+            <MainLayout>
+              <InvoiceDetail />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/items/:id"
+          element={
+            <MainLayout>
+              <ItemDetail />
+            </MainLayout>
+          }
         />
       </Routes>
     </Router>

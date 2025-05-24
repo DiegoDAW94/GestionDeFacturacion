@@ -3,6 +3,7 @@ import ItemForm from '../components/ItemForm';
 import Modal from '../components/Modal';
 import DataTable from '../components/DataTable';
 import { getItemsByCompany, deleteItem } from '../services/apiservices';
+import { Link } from 'react-router-dom';
 
 const Items: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -10,6 +11,24 @@ const Items: React.FC = () => {
   const token = localStorage.getItem('authToken');
   const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
   const [editItem, setEditItem] = useState<any | null>(null);
+  const [filter, setFilter] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const filteredItems = items.filter(row => {
+    // Filtrado por texto en campos directos
+    const matchesText = Object.values(row).some(
+      value =>
+        value &&
+        typeof value === 'string' &&
+        value.toLowerCase().includes(filter.toLowerCase())
+    );
+  
+    let matchesPrice = true;
+    if (minPrice) matchesPrice = Number(row.total) >= Number(minPrice);
+    if (maxPrice) matchesPrice = matchesPrice && Number(row.total) <= Number(maxPrice);
+  
+    return (matchesText) && matchesPrice;
+  });
 
   useEffect(() => {
     if (selectedCompany?.id && token) {
@@ -20,7 +39,18 @@ const Items: React.FC = () => {
   }, [selectedCompany?.id, token]);
 
   const columns = [
-    { key: 'name', label: 'Nombre' },
+    {
+      key: 'name',
+      label: 'Nombre',
+      render: (row: any) => (
+        <Link
+          to={`/items/${row.id}`}
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          {row.name}
+        </Link>
+      ),
+    },
     { key: 'description', label: 'Descripción' },
     { key: 'price', label: 'Precio' },
   ];
@@ -67,13 +97,45 @@ const Items: React.FC = () => {
       >
         <ItemForm item={editItem} onSaved={handleSaved} />
       </Modal>
-      <DataTable
-        columns={columns}
-        data={items}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <div className="flex gap-4 items-center mb-4">
+  <input
+    type="number"
+    placeholder="Precio mínimo"
+    value={minPrice}
+    onChange={e => setMinPrice(e.target.value)}
+    className="px-2 py-1 border rounded w-24"
+    min="0"
+  />
+  <input
+    type="number"
+    placeholder="Precio máximo"
+    value={maxPrice}
+    onChange={e => setMaxPrice(e.target.value)}
+    className="px-2 py-1 border rounded w-24"
+    min="0"
+  />
+  <input
+    type="text"
+    placeholder="Buscar..."
+    value={filter}
+    onChange={e => setFilter(e.target.value)}
+    className="px-2 py-1 border rounded w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
+  />
+  <button
+    className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
+    onClick={() => setFilter('')}
+    type="button"
+  >
+    Reset Filter
+  </button>
+</div>
+      <DataTable 
+      columns={columns} 
+      data={filteredItems} 
+      onEdit={handleEdit} 
+      onDelete={handleDelete} />
     </div>
+    
   );
 };
 

@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    public function index()
-    {
-        return Role::all(); // Devuelve todos los roles
-    }
+   public function index()
+{
+    // Devuelve todos los roles excepto el de ID 1
+    return Role::where('id', '!=', 1)->get();
+}
 
     public function store(Request $request)
     {

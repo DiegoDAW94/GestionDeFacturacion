@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import RowActionsMenu from './RowActionsMenu';
 
 export interface DataTableProps<T> {
-  columns: { key: keyof T; label: string }[];
+  columns: { key: keyof T; label: string; render?: (row: T) => React.ReactNode }[];
   data: T[];
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
@@ -16,9 +16,27 @@ function DataTable<T extends { [key: string]: unknown }>({
 }: DataTableProps<T>) {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+  const [sortKey, setSortKey] = useState<keyof T | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
-  const paginatedData = data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const sortedData = React.useMemo(() => {
+    if (!sortKey) return data;
+    return [...data].sort((a, b) => {
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      return sortOrder === 'asc'
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
+    });
+  }, [data, sortKey, sortOrder]);
+
+  const paginatedData = sortedData.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   return (
     <div className="bg-white rounded shadow-md border border-gray-200 p-4 max-h-96 max-w-full overflow-auto">
@@ -26,8 +44,20 @@ function DataTable<T extends { [key: string]: unknown }>({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={String(col.key)} className="px-4 py-2 border-b bg-gray-100 text-left font-semibold">
+              <th
+                key={String(col.key)}
+                className="px-4 py-2 border-b bg-gray-100 text-left font-semibold cursor-pointer select-none"
+                onClick={() => {
+                  if (sortKey === col.key) {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortKey(col.key);
+                    setSortOrder('asc');
+                  }
+                }}
+              >
                 {col.label}
+                {sortKey === col.key && (sortOrder === 'asc' ? ' ▲' : ' ▼')}
               </th>
             ))}
             <th className="w-10 border-b bg-gray-100 text-left font-semibold"></th>
@@ -42,24 +72,23 @@ function DataTable<T extends { [key: string]: unknown }>({
             </tr>
           ) : (
             paginatedData.map((row, idx) => {
-              // Definir los handlers aquí para que el closure de row sea correcto
               const handleEditRow = () => {
-                console.log('onEdit en DataTable', row);
                 onEdit && onEdit(row);
               };
               const handleDeleteRow = () => {
-                console.log('onDelete en DataTable', row);
                 onDelete && onDelete(row);
               };
               return (
                 <tr key={idx} className="hover:bg-gray-50">
-                 {columns.map((col) => (
-  <td key={String(col.key)} className="px-4 py-2 border-b">
-    {typeof row[col.key] === 'object' && row[col.key] !== null
-      ? row[col.key].name
-      : String(row[col.key] ?? '')}
-  </td>
-))}
+                  {columns.map((col) => (
+                    <td key={String(col.key)} className="px-4 py-2 border-b">
+                      {col.render
+                        ? col.render(row)
+                        : typeof row[col.key] === 'object' && row[col.key] !== null
+                        ? (row[col.key] as any).name
+                        : String(row[col.key] ?? '')}
+                    </td>
+                  ))}
                   <td className="border-b w-10 text-center p-0">
                     <RowActionsMenu
                       onEdit={handleEditRow}

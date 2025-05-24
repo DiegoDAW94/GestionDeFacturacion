@@ -176,6 +176,22 @@ export const deleteUser = async (userId: number, token: string) => {
   return handleResponse(response);
 };
 
+export const registerWorker = async (form: any, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/users/register-worker`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(form),
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error al registrar trabajador');
+  }
+  return response.json();
+};
+
 // CRUD para Roles
 export const getRoles = async (token: string) => {
   const response = await fetch(`${API_BASE_URL}/roles`, {

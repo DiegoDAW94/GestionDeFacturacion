@@ -3,6 +3,7 @@ import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import CompanyForm from '../components/CompanyForm';
 import { getCompanies, deleteCompany } from '../services/apiservices';
+import { Link } from 'react-router-dom';
 
 const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompany?: any }> = ({
   setUser,
@@ -24,7 +25,18 @@ const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompa
   }, [token]);
 
   const columns = [
-    { key: 'name', label: 'Nombre' },
+    {
+      key: 'name',
+      label: 'Nombre',
+      render: (row: any) => (
+        <Link
+          to={`/companies/${row.id}`}
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          {row.name}
+        </Link>
+      ),
+    },
     { key: 'cif', label: 'NIF' },
     { key: 'fiscal_address', label: 'Dirección fiscal' },
     { key: 'email', label: 'Email' },
