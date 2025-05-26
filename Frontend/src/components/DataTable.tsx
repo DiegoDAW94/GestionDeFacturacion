@@ -5,7 +5,7 @@ export interface DataTableProps<T> {
   columns: { key: keyof T; label: string; render?: (row: T) => React.ReactNode }[];
   data: T[];
   onEdit?: (row: T) => void;
-  onDelete?: (row: T) => void;
+  onDelete?: (id: number) => void;
 }
 
 function DataTable<T extends { [key: string]: unknown }>({
@@ -39,7 +39,7 @@ function DataTable<T extends { [key: string]: unknown }>({
   const paginatedData = sortedData.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   return (
-    <div className="bg-white rounded shadow-md border border-gray-200 p-4 max-h-96 max-w-full overflow-auto">
+    <div className="bg-white rounded shadow-md border border-gray-200 p-4 max-h-96 max-w-full overflow-visible">
       <table className="min-w-full text-sm">
         <thead>
           <tr>
@@ -75,9 +75,9 @@ function DataTable<T extends { [key: string]: unknown }>({
               const handleEditRow = () => {
                 onEdit && onEdit(row);
               };
-              const handleDeleteRow = () => {
-                onDelete && onDelete(row);
-              };
+             const handleDeleteRow = () => {
+  onDelete && onDelete(row.id);
+};
               return (
                 <tr key={idx} className="hover:bg-gray-50">
                   {columns.map((col) => (
@@ -89,7 +89,7 @@ function DataTable<T extends { [key: string]: unknown }>({
                         : String(row[col.key] ?? '')}
                     </td>
                   ))}
-                  <td className="border-b w-10 text-center p-0">
+                 <td className="border-b w-10 text-center p-0 relative">
                     <RowActionsMenu
                       onEdit={handleEditRow}
                       onDelete={handleDeleteRow}

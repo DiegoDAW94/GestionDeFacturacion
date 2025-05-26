@@ -3,9 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import SideNavBar from './SideNavBar';
 import DropdownSelector from './DropdownSelector';
 
+const SIDENAV_WIDTH = 64; // ancho colapsado (px)
+const SIDENAV_WIDTH_EXPANDED = 240; // ancho expandido (px)
+
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+
+  // El estado de la barra lateral se guarda en localStorage para persistencia entre rutas
+  const [sideNavExpanded, setSideNavExpanded] = useState(() => {
+    const stored = localStorage.getItem('sideNavExpanded');
+    return stored ? JSON.parse(stored) : false;
+  });
   const navigate = useNavigate();
 
   // Cargar usuario y compañía seleccionada al montar
@@ -57,6 +66,12 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, []);
 
+  // Manejar el cambio de estado de la barra lateral y guardarlo en localStorage
+  const handleSideNavToggle = (expanded: boolean) => {
+    setSideNavExpanded(expanded);
+    localStorage.setItem('sideNavExpanded', JSON.stringify(expanded));
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
@@ -65,6 +80,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setSelectedCompany(null);
     navigate('/login');
   };
+
+  // Calcula el margen izquierdo según el estado del SideNavBar
+  const mainMarginLeft = sideNavExpanded ? SIDENAV_WIDTH_EXPANDED : SIDENAV_WIDTH;
 
   return (
     <div className="flex h-screen">
@@ -114,10 +132,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
 
       {/* Barra lateral */}
-      <SideNavBar />
+      <SideNavBar expanded={sideNavExpanded} onToggle={handleSideNavToggle} />
 
       {/* Contenido principal */}
-      <div className="flex-1 flex flex-col ml-16 mt-16">
+      <div
+        className="flex-1 flex flex-col mt-16 transition-all duration-300"
+        style={{ marginLeft: mainMarginLeft }}
+      >
         <main className="flex-1 p-4 bg-gray-100">
           {React.isValidElement(children)
             ? React.cloneElement(children, {

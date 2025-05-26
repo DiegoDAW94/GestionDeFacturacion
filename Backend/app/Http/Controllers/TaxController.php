@@ -14,7 +14,7 @@ class TaxController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
+            
             'name' => 'required|string|max:50',
             'percentage' => 'required|numeric|min:0|max:100',
         ]);
@@ -30,7 +30,7 @@ class TaxController extends Controller
     public function update(Request $request, Tax $tax)
     {
         $validated = $request->validate([
-            'company_id' => 'exists:companies,id',
+            
             'name' => 'string|max:50',
             'percentage' => 'numeric|min:0|max:100',
         ]);

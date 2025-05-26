@@ -2,25 +2,36 @@ import React, { useState, useEffect } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
 import Modal from '../components/Modal';
 import DataTable from '../components/DataTable';
-import { getInvoices, deleteInvoice, getClients, getInvoicesByCompany, createPrintedInvoices } from '../services/apiservices';
+import { getAllInvoices, deleteInvoice, getClients, createPrintedInvoices } from '../services/apiservices';
 import { Link } from 'react-router-dom';
 
-const baseTextStyle = { fontSize: 14, margin: 0, padding: 0, fontFamily: "Arial, sans-serif" };
-const labelStyle = { ...baseTextStyle, fontWeight: "bold" };
-const valueStyle = { ...baseTextStyle, fontWeight: "normal" };
-
-const Invoice: React.FC = () => {
+const AdminInvoices: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [editInvoice, setEditInvoice] = useState<any | null>(null);
   const token = localStorage.getItem('authToken');
-  const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
   const [filter, setFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (token) {
+      Promise.all([
+        getAllInvoices(token),
+        getClients(token)
+      ]).then(([invoices, clients]) => {
+        const clientsMap = Object.fromEntries(clients.map((c: any) => [c.id, c.name]));
+        const invoicesWithClientName = invoices.map((inv: any) => ({
+          ...inv,
+          client: { name: clientsMap[inv.client_id] || 'Desconocido' }
+        }));
+        setInvoices(invoicesWithClientName);
+      });
+    }
+  }, [token]);
 
   const filteredInvoices = invoices.filter(row => {
     const matchesText = Object.values(row).some(
@@ -44,22 +55,6 @@ const Invoice: React.FC = () => {
 
     return (matchesText || matchesClient) && matchesDate && matchesPrice;
   });
-
-  useEffect(() => {
-    if (selectedCompany?.id && token) {
-      Promise.all([
-        getInvoicesByCompany(selectedCompany.id, token),
-        getClients(token)
-      ]).then(([invoices, clients]) => {
-        const clientsMap = Object.fromEntries(clients.map((c: any) => [c.id, c.name]));
-        const invoicesWithClientName = invoices.map((inv: any) => ({
-          ...inv,
-          client: { name: clientsMap[inv.client_id] || 'Desconocido' }
-        }));
-        setInvoices(invoicesWithClientName);
-      });
-    }
-  }, [selectedCompany?.id, token]);
 
   const handleSelect = (id: number) => {
     setSelectedIds(prev =>
@@ -106,7 +101,7 @@ const Invoice: React.FC = () => {
       ),
     },
     { key: 'date', label: 'Fecha' },
-    { key: 'client', label: 'Cliente' },
+    { key: 'client', label: 'Cliente', render: (row: any) => row.client?.name || '' },
     { key: 'total', label: 'Total' },
   ];
 
@@ -115,13 +110,13 @@ const Invoice: React.FC = () => {
     setModalOpen(true);
   };
 
- const handleDelete = async (id: number) => {
-  const invoice = invoices.find(inv => inv.id === id);
+const handleDelete = async (id: number) => {
+  const invoice = invoices.find((inv) => inv.id === id);
   if (!invoice) return;
   if (!window.confirm(`¿Seguro que quieres borrar la factura "${invoice.number}"?`)) return;
   try {
     await deleteInvoice(id, token);
-    const updatedInvoices = await getInvoices(token);
+    const updatedInvoices = await getAllInvoices(token);
     setInvoices(updatedInvoices);
   } catch (error) {
     alert('Error al borrar la factura');
@@ -131,14 +126,13 @@ const Invoice: React.FC = () => {
   const handleSaved = async () => {
     setModalOpen(false);
     setEditInvoice(null);
-    const updatedInvoices = await getInvoices(token);
+    const updatedInvoices = await getAllInvoices(token);
     setInvoices(updatedInvoices);
   };
 
   // Imprimir en lote: solo registrar en printed_invoices
   const handlePrintSelected = async () => {
     if (!selectedIds.length) return;
-    const token = localStorage.getItem('authToken');
     try {
       await createPrintedInvoices(selectedIds, token);
       alert('Facturas marcadas como listas para imprimir. Puedes verlas en la vista de impresiones.');
@@ -150,27 +144,13 @@ const Invoice: React.FC = () => {
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Gestión de Facturas</h1>
+      <h1 className="text-3xl font-bold mb-6">Gestión de Facturas (Admin)</h1>
       <button
         className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
         onClick={() => { setModalOpen(true); setEditInvoice(null); }}
       >
         Crear Factura
       </button>
-      <button
-        className="mb-4 ml-2 px-4 py-2 bg-green-600 text-white rounded"
-        disabled={selectedIds.length === 0}
-        onClick={handlePrintSelected}
-      >
-        Imprimir seleccionadas
-      </button>
-      <Link
-        to="/invoices/printed"
-        className="mb-4 ml-2 px-4 py-2 bg-gray-700 text-white rounded inline-block"
-        style={{ textDecoration: 'none' }}
-      >
-        Ver facturas listas para imprimir
-      </Link>
       <Modal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditInvoice(null); }}
@@ -216,13 +196,7 @@ const Invoice: React.FC = () => {
           className="px-2 py-1 border rounded w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
         />
         <button className="mb-4 px-4 py-2 bg-gray-300 text-gray-800 rounded"
-         onClick={() => {
-          setFilter('');
-          setStartDate('');
-          setEndDate('');
-          setMinPrice('');
-          setMaxPrice('');
-         }}
+          onClick={() => { setFilter(''); setStartDate(''); setEndDate(''); setMinPrice(''); setMaxPrice(''); }}
           type="button">
           Reset Filter
         </button>
@@ -237,4 +211,4 @@ const Invoice: React.FC = () => {
   );
 };
 
-export default Invoice;
+export default AdminInvoices;

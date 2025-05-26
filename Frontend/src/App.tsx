@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Clients from './pages/Clients';
@@ -15,17 +14,128 @@ import UserDetail from './components/UserDetail';
 import ClientDetail from './components/ClientDetail';
 import InvoiceDetail from './components/InvoiceDetail';
 import ItemDetail from './components/ItemDetail';
+import PrintedInvoices from './pages/PrintedInvoices';
+import PrintedInvoiceDetails from './components/PrintedInvoiceDetail';
+import ProtectedRoute from './components/ProtectedRoute';
+import RequireCompany from './components/RequireCompany';
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './components/AdminLayout';
+import AdminPanel from './pages/AdminPanel';
+import AdminUsers from './pages/AdminUsers';
+import AdminClientes from './pages/AdminClientes';
+import AdminCompanies from './pages/AdminCompanies';
+import AdminInvoices from './pages/AdminInvoices';
+import AdminTaxes from './pages/AdminTaxes';
+import AdminRoles from './pages/AdminRoles';
+import AdminItems from './pages/AdminItems';
+
+
 
 const AppRouter: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Rutas con MainLayout */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminPanel />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminUsers />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/clientes"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminClientes />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminCompanies />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/items"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminItems />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/invoices"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminInvoices />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/taxes"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminTaxes />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/roles"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminRoles />
+                </AdminLayout>
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/"
           element={
             <MainLayout>
-              <Home />
+               <DashBoard />
             </MainLayout>
           }
         />
@@ -33,43 +143,11 @@ const AppRouter: React.FC = () => {
           path="/home"
           element={
             <MainLayout>
-              <Home />
-            </MainLayout>
-          }
-        />
-         <Route
-          path="/create-invoice"
-          element={
-            <MainLayout>
-              <Invoice />
-            </MainLayout>
-          }
-        />
-           <Route
-          path="/items"
-          element={
-            <MainLayout>
-              <Items />
+              <DashBoard />
             </MainLayout>
           }
         />
         <Route
-          path="/create-company"
-          element={
-            <MainLayout>
-              <Company />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/clients"
-          element={
-            <MainLayout>
-              <Clients />
-            </MainLayout>
-          }
-        />
-         <Route
           path="/dashboard"
           element={
             <MainLayout>
@@ -77,63 +155,143 @@ const AppRouter: React.FC = () => {
             </MainLayout>
           }
         />
-        
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Rutas sin MainLayout */}
+        {/* Rutas protegidas */}
         <Route
-          path="/login"
-          element={<Login />}
+          path="/create-invoice"
+          element={
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <Invoice />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
+          }
         />
         <Route
-          path="/register"
-          element={<Register />}
+          path="/items"
+          element={
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <Items />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
+          }
         />
-
-        {/* Ruta para páginas no encontradas */}
         <Route
-          path="*"
-          element={<NotFound />}
+          path="/create-company"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Company />
+              </MainLayout>
+            </ProtectedRoute>
+          }
         />
-         <Route
+        <Route
+          path="/clients"
+          element={
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <Clients />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/companies/:id"
           element={
-            <MainLayout>
-              <CompanyDetail />
-            </MainLayout>
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <CompanyDetail />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/settings/:id"
           element={
-            <MainLayout>
-              <UserDetail />
-            </MainLayout>
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <UserDetail />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/clients/:id"
           element={
-            <MainLayout>
-              <ClientDetail />
-            </MainLayout>
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <ClientDetail />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/invoices/:id"
           element={
-            <MainLayout>
-              <InvoiceDetail />
-            </MainLayout>
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <InvoiceDetail />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoices/printed"
+          element={
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <PrintedInvoices />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoices/printed/:id"
+          element={
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <PrintedInvoiceDetails />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/items/:id"
           element={
-            <MainLayout>
-              <ItemDetail />
-            </MainLayout>
+            <ProtectedRoute>
+              <RequireCompany>
+              <MainLayout>
+                <ItemDetail />
+              </MainLayout>
+              </RequireCompany>
+            </ProtectedRoute>
           }
         />
+
+        {/* Ruta para páginas no encontradas */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

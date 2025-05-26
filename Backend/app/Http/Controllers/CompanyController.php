@@ -12,6 +12,17 @@ class CompanyController extends Controller
         $companies = Company::where('owner_id', $request->user()->id)->get();
         return response()->json(['companies' => $companies], 200);
     }
+    public function allCompanies(Request $request)
+{
+    // Comprueba si el usuario tiene el rol de admin (role_id = 1)
+    $isAdmin = $request->user()->roles()->where('roles.id', 1)->exists();
+    if (!$isAdmin) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+
+    $companies = Company::all();
+    return response()->json(['companies' => $companies], 200);
+}
 
    public function store(Request $request)
 {
@@ -62,34 +73,46 @@ class CompanyController extends Controller
 }
 
     public function update(Request $request, Company $company)
-    {
-        if ($company->owner_id !== $request->user()->id) {
-            return response()->json(['error' => 'No tienes permiso para actualizar esta compañía.'], 403);
-        }
+{
+    $user = $request->user();
+    $isAdmin = $user->roles()->where('roles.id', 1)->exists();
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'legal_name' => 'nullable|string|max:255',
-            'cif' => 'required|string|max:50|unique:companies,cif,' . $company->id,
-            'email' => 'required|email|max:255|unique:companies,email,' . $company->id,
-            'telefono' => 'nullable|string|max:20',
-        ]);
-
-        $company->update($validated);
-
-        return response()->json(['company' => $company], 200);
+    if ($company->owner_id !== $user->id && !$isAdmin) {
+        return response()->json(['error' => 'No tienes permiso para actualizar esta compañía.'], 403);
     }
 
-    public function destroy(Request $request, Company $company)
-    {
-        if ($company->owner_id !== $request->user()->id) {
-            return response()->json(['error' => 'No tienes permiso para eliminar esta compañía.'], 403);
-        }
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'legal_name' => 'nullable|string|max:255',
+        'cif' => 'required|string|max:50|unique:companies,cif,' . $company->id,
+        'email' => 'required|email|max:255|unique:companies,email,' . $company->id,
+        'telefono' => 'nullable|string|max:20',
+        'fiscal_address' => 'nullable|string|max:255',
+        'social_address' => 'nullable|string|max:255',
+        'city' => 'nullable|string|max:100',
+        'postal_code' => 'nullable|string|max:10',
+        'province' => 'nullable|string|max:100',
+        'invoice_prefix' => 'nullable|string|max:10',
+    ]);
 
-        $company->delete();
+    $company->update($validated);
 
-        return response()->json(['message' => 'Compañía eliminada exitosamente.'], 200);
+    return response()->json(['company' => $company], 200);
+}
+
+  public function destroy(Request $request, Company $company)
+{
+    $user = $request->user();
+    $isAdmin = $user->roles()->where('roles.id', 1)->exists();
+
+    if ($company->owner_id !== $user->id && !$isAdmin) {
+        return response()->json(['error' => 'No tienes permiso para eliminar esta compañía.'], 403);
     }
+
+    $company->delete();
+
+    return response()->json(['message' => 'Compañía eliminada exitosamente.'], 200);
+}
 
     public function myCompanies(Request $request)
 {

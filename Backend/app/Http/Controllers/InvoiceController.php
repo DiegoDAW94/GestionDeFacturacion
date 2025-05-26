@@ -15,51 +15,69 @@ class InvoiceController extends Controller
 }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'user_id' => 'required|exists:users,id',
-            'client_id' => 'required|exists:clients,id',
-            'number' => 'nullable|string|max:20',
-            'date' => 'required|date',
-            'operation_date' => 'nullable|date',
-            'custom_items' => 'nullable|array',
-        ]);
+{
+    $validated = $request->validate([
+        'company_id' => 'required|exists:companies,id',
+        'user_id' => 'required|exists:users,id',
+        'client_id' => 'required|exists:clients,id',
+        'number' => 'nullable|string|max:20',
+        'date' => 'required|date',
+        'operation_date' => 'nullable|date',
+        'custom_items' => 'nullable|array',
+    ]);
 
-        if (empty($validated['number'])) {
-            $validated['number'] = 'F-' . time();
-        }
-        $validated['base_amount'] = 0;
-        $validated['tax_amount'] = 0;
-        $validated['total'] = 0;
+    // Obtener la empresa y su prefijo
+    $company = \App\Models\Company::findOrFail($validated['company_id']);
+    $prefix = $company->invoice_prefix ?: 'F';
 
-        $invoice = Invoice::create($validated);
+    // Si no se pasa número, generarlo correlativo por empresa
+    if (empty($validated['number'])) {
+        // Busca la última factura de la empresa ordenada por id descendente
+        $lastInvoice = \App\Models\Invoice::where('company_id', $company->id)
+            ->orderByDesc('id')
+            ->first();
 
-        // Guardar los datos históricos de los ítems
-        if ($request->has('items')) {
-            foreach ($request->input('items') as $itemData) {
-                $item = Item::findOrFail($itemData['id']);
-                $invoice->invoiceItems()->create([
-                    'item_id' => $item->id,
-                    'name' => $item->name,
-                    'description' => $item->description,
-                    'price' => $item->price,
-                    'quantity' => $itemData['quantity'],
-                ]);
-            }
+        // Extrae el número correlativo (asume formato PREFIX-XXX)
+        if ($lastInvoice && preg_match('/^' . preg_quote($prefix, '/') . '-(\d+)$/', $lastInvoice->number, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        } else {
+            $nextNumber = 1;
         }
 
-        // Relacionar impuestos
-        if ($request->has('taxes')) {
-            $invoice->taxes()->sync($request->input('taxes'));
-        }
-
-        // Cargar relaciones antes de calcular totales
-        $invoice->load(['invoiceItems', 'taxes']);
-        $this->calculateTotals($invoice);
-
-        return $invoice->load(['invoiceItems', 'taxes']);
+        $validated['number'] = $prefix . '-' . $nextNumber;
     }
+
+    $validated['base_amount'] = 0;
+    $validated['tax_amount'] = 0;
+    $validated['total'] = 0;
+
+    $invoice = Invoice::create($validated);
+
+    // Guardar los datos históricos de los ítems
+    if ($request->has('items')) {
+        foreach ($request->input('items') as $itemData) {
+            $item = \App\Models\Item::findOrFail($itemData['id']);
+            $invoice->invoiceItems()->create([
+                'item_id' => $item->id,
+                'name' => $item->name,
+                'description' => $item->description,
+                'price' => $item->price,
+                'quantity' => $itemData['quantity'],
+            ]);
+        }
+    }
+
+    // Relacionar impuestos
+    if ($request->has('taxes')) {
+        $invoice->taxes()->sync($request->input('taxes'));
+    }
+
+    // Cargar relaciones antes de calcular totales
+    $invoice->load(['invoiceItems', 'taxes']);
+    $this->calculateTotals($invoice);
+
+    return $invoice->load(['invoiceItems', 'taxes']);
+}
 
     public function update(Request $request, Invoice $invoice)
     {
@@ -163,5 +181,13 @@ public function show($id)
     }
 
     return $invoice;
+}
+public function allInvoices(Request $request)
+{
+    $isAdmin = $request->user()->roles()->where('roles.id', 1)->exists();
+    if (!$isAdmin) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+    return Invoice::with(['invoiceItems', 'taxes', 'client'])->get();
 }
 }

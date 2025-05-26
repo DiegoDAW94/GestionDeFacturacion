@@ -19,38 +19,45 @@ const LoginForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null); // Limpiar errores previos
+  e.preventDefault();
+  setError(null);
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || 'Error al iniciar sesión');
-        return;
-      }
-
-      const data = await response.json();
-      console.log('Inicio de sesión exitoso:', data);
-
-      // Guardar el token en localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirigir al usuario al dashboard o página principal
-      navigate('/');
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      setError('Error de conexión con el servidor');
+    if (!response.ok) {
+      const errorData = await response.json();
+      setError(errorData.message || 'Error al iniciar sesión');
+      return;
     }
-  };
+
+    const data = await response.json();
+    console.log('Inicio de sesión exitoso:', data);
+
+    localStorage.setItem('authToken', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    // Redirección según el rol
+    const isAdmin = Array.isArray(data.user.roles) && data.user.roles.some(
+      (role: any) => role.pivot?.role_id === 1
+    );
+
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    setError('Error de conexión con el servidor');
+  }
+};
 
   return (
     <form onSubmit={handleSubmit}>

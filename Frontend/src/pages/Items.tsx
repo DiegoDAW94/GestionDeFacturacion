@@ -61,11 +61,12 @@ const Items: React.FC = () => {
   setModalOpen(true);
 };
 
-  const handleDelete = async (item: any) => {
-  console.log('Intentando borrar:', item);
+  const handleDelete = async (id: number) => {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
   if (!window.confirm(`¿Seguro que quieres borrar el ítem "${item.name}"?`)) return;
   try {
-    await deleteItem(item.id, token);
+    await deleteItem(id, token);
     const updatedItems = await getItemsByCompany(selectedCompany.id, token);
     setItems(updatedItems);
   } catch (error) {
@@ -123,7 +124,11 @@ const Items: React.FC = () => {
   />
   <button
     className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
-    onClick={() => setFilter('')}
+    onClick={() => {
+      setFilter('');
+      setMinPrice('');
+      setMaxPrice('');
+    }}
     type="button"
   >
     Reset Filter

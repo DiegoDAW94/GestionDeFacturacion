@@ -38,12 +38,11 @@ const RowActionsMenu: React.FC<RowActionsMenuProps> = ({ onEdit, onDelete }) => 
       {open && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-8 z-50 bg-white border rounded shadow-md w-28"
+          className="absolute left-1/2 top-8 -translate-x-1/2 z-50 bg-white border rounded shadow-md w-28"
         >
           <button
             className="block w-full text-left px-4 py-2 hover:bg-gray-100"
             onClick={() => {
-              console.log('Click editar en RowActionsMenu');
               onEdit();
               setOpen(false);
             }}

@@ -8,6 +8,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\TaxController;
+use App\Http\Controllers\PrintedInvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,25 +33,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('items', ItemController::class);
     Route::apiResource('taxes', TaxController::class);
 
-    // Vistas individuales por ID (opcional, ya incluidas en apiResource)
-    Route::get('companies/{company}', [CompanyController::class, 'show']);
-    Route::get('users/{user}', [UserController::class, 'show']);
-    Route::get('clients/{client}', [ClientController::class, 'show']);
-    Route::get('invoices/{invoice}', [InvoiceController::class, 'show']);
-    Route::get('items/{item}', [ItemController::class, 'show']);
-
-    // Gestión de roles de usuario
-    Route::post('users/{user}/assign-role', [UserController::class, 'assignRole']);
-    Route::put('users/{user}/update-role', [UserController::class, 'updateRole']);
-    Route::delete('users/{user}/delete-role', [UserController::class, 'deleteRole']);
-
-    // Consultas relacionadas con la compañía autenticada
+    // Consultas y vistas adicionales
     Route::get('/my-companies', [CompanyController::class, 'myCompanies']);
+    Route::get('/admin/companies', [CompanyController::class, 'allCompanies']);
+    Route::get('/admin/clients', [ClientController::class, 'allClients']);
+    Route::get('/admin/items', [ItemController::class, 'allItems']);
+    Route::get('/admin/invoices', [InvoiceController::class, 'allInvoices']);
+
+
+    // Recursos relacionados con compañías
     Route::get('/companies/{company}/items', [ItemController::class, 'itemsByCompany']);
     Route::get('/companies/{company}/invoices', [InvoiceController::class, 'invoicesByCompany']);
     Route::get('/companies/{company}/clients', [ClientController::class, 'clientsByCompany']);
 
+    // Gestión de roles de usuario
+    Route::post('/users/{user}/assign-role', [UserController::class, 'assignRole']);
+    Route::put('/users/{user}/update-role', [UserController::class, 'updateRole']);
+    Route::delete('/users/{user}/delete-role', [UserController::class, 'deleteRole']);
+
+    // Printed invoices
+    Route::get('/printed-invoices', [PrintedInvoiceController::class, 'index']);
+    Route::get('/printed-invoices/{id}', [PrintedInvoiceController::class, 'show']);
+    Route::post('/printed-invoices', [PrintedInvoiceController::class, 'store']);
+    Route::delete('/printed-invoices/{id}', [PrintedInvoiceController::class, 'destroy']);
+
+    // Registro de trabajadores
     Route::post('/users/register-worker', [UserController::class, 'registerAndAssignWorker']);
-}
-    
-);
+});

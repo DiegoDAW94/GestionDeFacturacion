@@ -98,7 +98,11 @@ export const createCompany = async (
   return response.json();
 };
 
-export const updateCompany = async (companyId: number, companyData: { name: string; address: string }, token: string) => {
+export const updateCompany = async (
+  companyId: number,
+  companyData: any,
+  token: string
+) => {
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
     method: 'PUT',
     headers: {
@@ -107,7 +111,8 @@ export const updateCompany = async (companyId: number, companyData: { name: stri
     },
     body: JSON.stringify(companyData),
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Error al actualizar la compañía');
+  return response.json();
 };
 
 export const deleteCompany = async (companyId: number, token: string) => {
@@ -118,11 +123,22 @@ export const deleteCompany = async (companyId: number, token: string) => {
   return handleResponse(response);
 };
 
+export const getAllCompanies = async (token: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/companies`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Error al obtener todas las compañías');
+  return response.json();
+};
+
 // CRUD para Users
 export const getUsers = async (token: string) => {
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
   });
   return handleResponse(response);
 };
@@ -130,25 +146,34 @@ export const getUsers = async (token: string) => {
 export const getUserById = async (userId: number, token: string) => {
   const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return handleResponse(response);
-};
-export const me = async (token: string) => {
-  const response = await fetch(`${API_BASE_URL}/me`, {
-    method: 'GET',
     headers: {
+      'Accept': 'application/json',
       Authorization: `Bearer ${token}`,
     },
   });
   return handleResponse(response);
 };
 
-export const createUser = async (userData: { name: string; email: string; password: string }, token: string) => {
+export const me = async (token: string) => {
+  const response = await fetch(`${API_BASE_URL}/me`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return handleResponse(response);
+};
+
+export const createUser = async (
+  userData: { name: string; email: string; password: string },
+  token: string
+) => {
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(userData),
@@ -156,11 +181,16 @@ export const createUser = async (userData: { name: string; email: string; passwo
   return handleResponse(response);
 };
 
-export const updateUser = async (userId: number, userData: { name: string; email: string }, token: string) => {
+export const updateUser = async (
+  userId: number,
+  userData: { name: string; email: string },
+  token: string
+) => {
   const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(userData),
@@ -171,7 +201,10 @@ export const updateUser = async (userId: number, userData: { name: string; email
 export const deleteUser = async (userId: number, token: string) => {
   const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
   });
   return handleResponse(response);
 };
@@ -306,25 +339,34 @@ export const getClients = async (token: string) => {
     return handleResponse(response);
   };
   
-  export const updateClient = async (clientId: number, clientData: { name: string; email: string }, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/clients/${clientId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(clientData),
-    });
-    return handleResponse(response);
-  };
-  
-  export const deleteClient = async (clientId: number, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/clients/${clientId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse(response);
-  };
+  export const updateClient = async (clientId: number, clientData: any, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/clients/${clientId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(clientData),
+  });
+  if (!response.ok) throw new Error('Error al actualizar el cliente');
+  return response.json();
+};
+
+export const deleteClient = async (clientId: number, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/clients/${clientId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Error al eliminar el cliente');
+  return response;
+};
+export const getAllClients = async (token: string) => {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/clients`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Error al obtener los clientes');
+  return response.json();
+};
   
   // CRUD para Invoices
   export const getInvoices = async (token: string) => {
@@ -334,6 +376,13 @@ export const getClients = async (token: string) => {
     });
     return handleResponse(response);
   };
+  export const getAllInvoices = async (token: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/invoices`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Error al obtener las facturas');
+  return response.json();
+};
   
   export const getInvoiceById = async (invoiceId: number, token: string) => {
     const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
@@ -351,10 +400,11 @@ export const getClients = async (token: string) => {
   return handleResponse(response);
 };
   
-  export interface InvoicePayload {
+ export interface InvoicePayload {
   company_id: number;
   user_id: number;
   client_id: number;
+  number: string; // <-- Ahora obligatorio para update
   items: { id: number; quantity: number; price: number }[];
   custom_items?: { description: string; quantity: number; unit_price: number }[];
   taxes: number[];
@@ -368,23 +418,31 @@ export const createInvoice = async (invoiceData: InvoicePayload, token: string) 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(invoiceData),
   });
   return handleResponse(response);
 };
-  export const updateInvoice = async (invoiceId: number, invoiceData: { client_id: number; items: object[] }, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(invoiceData),
-    });
-    return handleResponse(response);
-  };
+
+export const updateInvoice = async (invoiceId: number, invoiceData: InvoicePayload, token: string) => {
+  // Asegúrate de que client_id y number están presentes y válidos
+  if (!invoiceData.client_id || !invoiceData.number) {
+    throw new Error('El payload debe incluir client_id y number');
+  }
+  const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(invoiceData),
+  });
+  if (!response.ok) throw new Error('Error al actualizar la factura');
+  return response.json();
+};
   
   export const deleteInvoice = async (invoiceId: number, token: string) => {
     const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
@@ -393,6 +451,52 @@ export const createInvoice = async (invoiceData: InvoicePayload, token: string) 
     });
     return handleResponse(response);
   };
+
+  export async function createPrintedInvoices(invoiceIds: number[], token: string) {
+  const response = await fetch(`${API_BASE_URL}/printed-invoices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ invoice_ids: invoiceIds }),
+  });
+  if (!response.ok) throw new Error('Error al registrar impresiones');
+  return response.json();
+}
+export async function getPrintedInvoices(token: string) {
+  const response = await fetch(`${API_BASE_URL}/printed-invoices`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Error al obtener impresiones');
+  return response.json();
+}
+
+export async function getPrintedInvoiceById(id: number, token: string) {
+  const response = await fetch(`${API_BASE_URL}/printed-invoices/${id}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Error al obtener impresión');
+  return response.json();
+}
+export async function deletePrintedInvoice(id: number, token: string) {
+  const response = await fetch(`${API_BASE_URL}/printed-invoices/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    let errorMsg = 'Error al eliminar la factura impresa';
+    try {
+      const errorData = await response.json();
+      errorMsg = errorData.message || JSON.stringify(errorData) || errorMsg;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  return await response.json();
+}
   
   // CRUD para Items
   export const getItems = async (token: string) => {
@@ -402,6 +506,13 @@ export const createInvoice = async (invoiceData: InvoicePayload, token: string) 
     });
     return handleResponse(response);
   };
+  export const getAllItems = async (token: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/items`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Error al obtener los ítems');
+  return response.json();
+};
   
   export const getItemById = async (itemId: number, token: string) => {
     const response = await fetch(`${API_BASE_URL}/items/${itemId}`, {
@@ -473,17 +584,18 @@ export const createInvoice = async (invoiceData: InvoicePayload, token: string) 
     return handleResponse(response);
   };
   
-  export const createTax = async (taxData: { name: string; percentage: number }, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/taxes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(taxData),
-    });
-    return handleResponse(response);
-  };
+export const createTax = async (taxData: { name: string; percentage: number }, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/taxes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json', // <-- Añade esto
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(taxData),
+  });
+  return handleResponse(response);
+};
   
   export const updateTax = async (taxId: number, taxData: { name: string; percentage: number }, token: string) => {
     const response = await fetch(`${API_BASE_URL}/taxes/${taxId}`, {

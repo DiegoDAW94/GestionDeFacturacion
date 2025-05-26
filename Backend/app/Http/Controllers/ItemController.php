@@ -75,4 +75,12 @@ class ItemController extends Controller
     $items = Item::where('company_id', $companyId)->get();
     return response()->json($items);
 }
+public function allItems(Request $request)
+{
+    $isAdmin = $request->user()->roles()->where('roles.id', 1)->exists();
+    if (!$isAdmin) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+    return Item::all();
+}
 }

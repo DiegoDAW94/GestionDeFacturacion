@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { createCompany } from '../services/apiservices';
+import React, { useState, useEffect } from 'react';
+import { createCompany, updateCompany } from '../services/apiservices'; // <-- Importa updateCompany
 
 interface CompanyFormProps {
   company?: any;
@@ -26,6 +26,39 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSaved }) => {
 
   const token = localStorage.getItem('authToken'); // Obtener el token del usuario logueado
 
+  // Actualiza los campos del formulario cuando cambia la compañía a editar
+  useEffect(() => {
+    if (company) {
+      setFormData({
+        name: company.name || '',
+        legal_name: company.legal_name || '',
+        cif: company.cif || '',
+        fiscal_address: company.fiscal_address || '',
+        social_address: company.social_address || '',
+        city: company.city || '',
+        postal_code: company.postal_code || '',
+        province: company.province || '',
+        email: company.email || '',
+        telefono: company.telefono || '',
+        invoice_prefix: company.invoice_prefix || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        legal_name: '',
+        cif: '',
+        fiscal_address: '',
+        social_address: '',
+        city: '',
+        postal_code: '',
+        province: '',
+        email: '',
+        telefono: '',
+        invoice_prefix: '',
+      });
+    }
+  }, [company]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -45,35 +78,44 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSaved }) => {
   }
 
   try {
-    // Enviar todos los datos al backend y obtener la nueva compañía creada
-    const newCompany = await createCompany(formData, token);
-    setSuccess('Compañía creada exitosamente.');
-    setFormData({
-      name: '',
-      legal_name: '',
-      cif: '',
-      fiscal_address: '',
-      social_address: '',
-      city: '',
-      postal_code: '',
-      province: '',
-      email: '',
-      telefono: '',
-      invoice_prefix: '',
-    });
-    // Llama a onSaved pasando la nueva compañía creada
+    let result;
+    if (company) {
+      // Editar compañía existente
+      result = await updateCompany(company.id, formData, token);
+      setSuccess('Compañía actualizada exitosamente.');
+    } else {
+      // Crear nueva compañía
+      result = await createCompany(formData, token);
+      setSuccess('Compañía creada exitosamente.');
+      setFormData({
+        name: '',
+        legal_name: '',
+        cif: '',
+        fiscal_address: '',
+        social_address: '',
+        city: '',
+        postal_code: '',
+        province: '',
+        email: '',
+        telefono: '',
+        invoice_prefix: '',
+      });
+    }
+    // Llama a onSaved pasando la compañía creada/actualizada
     if (typeof onSaved === 'function') {
-      onSaved(newCompany);
+      onSaved(result.company || result);
     }
   } catch (err) {
-    console.error('Error al crear la compañía:', err);
-    setError('Hubo un error al crear la compañía.');
+    console.error('Error al guardar la compañía:', err);
+    setError('Hubo un error al guardar la compañía.');
   }
 };
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">
-      <h1 className="text-2xl font-bold mb-6">Crear Compañía</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {company ? 'Editar Compañía' : 'Crear Compañía'}
+      </h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
@@ -217,7 +259,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSaved }) => {
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
-        Crear Compañía
+        {company ? 'Guardar Cambios' : 'Crear Compañía'}
       </button>
     </form>
   );

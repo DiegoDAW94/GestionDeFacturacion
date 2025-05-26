@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { createClient } from '../services/apiservices';
+import React, { useState, useEffect } from 'react';
+import { createClient, updateClient } from '../services/apiservices';
 
-const ClientForm: React.FC = () => {
+interface ClientFormProps {
+  client?: any;
+  onSaved?: (client: any) => void;
+}
+
+const ClientForm: React.FC<ClientFormProps> = ({ client, onSaved }) => {
   const [formData, setFormData] = useState({
     name: '',
     nif: '',
@@ -10,6 +15,7 @@ const ClientForm: React.FC = () => {
     postal_code: '',
     province: '',
     email: '',
+    company_id: '',
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +23,33 @@ const ClientForm: React.FC = () => {
 
   const token = localStorage.getItem('authToken');
   const selectedCompany = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
+
+  // Actualiza los campos del formulario cuando cambia el cliente a editar
+  useEffect(() => {
+    if (client) {
+      setFormData({
+        name: client.name || '',
+        nif: client.nif || '',
+        fiscal_address: client.fiscal_address || '',
+        city: client.city || '',
+        postal_code: client.postal_code || '',
+        province: client.province || '',
+        email: client.email || '',
+        company_id: client.company_id || selectedCompany.id || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        nif: '',
+        fiscal_address: '',
+        city: '',
+        postal_code: '',
+        province: '',
+        email: '',
+        company_id: selectedCompany.id || '',
+      });
+    }
+  }, [client, selectedCompany.id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -35,37 +68,46 @@ const ClientForm: React.FC = () => {
       setError('No se encontró el token de autenticación.');
       return;
     }
-    if (!selectedCompany.id) {
+    if (!formData.company_id) {
       setError('No hay empresa seleccionada.');
       return;
     }
 
     try {
-      const clientData = {
-        ...formData,
-        company_id: selectedCompany.id,
-      };
-
-      await createClient(clientData, token);
-      setSuccess('Cliente añadido exitosamente.');
-      setFormData({
-        name: '',
-        nif: '',
-        fiscal_address: '',
-        city: '',
-        postal_code: '',
-        province: '',
-        email: '',
-      });
+      let result;
+      if (client) {
+        // Editar cliente existente
+        result = await updateClient(client.id, formData, token);
+        setSuccess('Cliente actualizado exitosamente.');
+      } else {
+        // Crear nuevo cliente
+        result = await createClient(formData, token);
+        setSuccess('Cliente añadido exitosamente.');
+        setFormData({
+          name: '',
+          nif: '',
+          fiscal_address: '',
+          city: '',
+          postal_code: '',
+          province: '',
+          email: '',
+          company_id: selectedCompany.id || '',
+        });
+      }
+      if (typeof onSaved === 'function') {
+        onSaved(result);
+      }
     } catch (err) {
-      console.error('Error al añadir el cliente:', err);
-      setError('Hubo un error al añadir el cliente.');
+      console.error('Error al guardar el cliente:', err);
+      setError('Hubo un error al guardar el cliente.');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md">
-      <h1 className="text-2xl font-bold mb-6">Añadir Cliente</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {client ? 'Editar Cliente' : 'Añadir Cliente'}
+      </h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
@@ -163,7 +205,7 @@ const ClientForm: React.FC = () => {
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
-        Añadir Cliente
+        {client ? 'Guardar Cambios' : 'Añadir Cliente'}
       </button>
     </form>
   );
