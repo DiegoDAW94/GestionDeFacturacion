@@ -111,11 +111,11 @@ const Company: React.FC<{
         (c.name === newCompany.name && c.cif === newCompany.cif)
     );
     if (created) {
-      localStorage.setItem("selectedCompany", JSON.stringify(created));
-      if (setSelectedCompany) setSelectedCompany(created);
-      if (setUser)
-        setUser((prev: any) => ({ ...prev, companies: allCompanies }));
-    }
+  localStorage.setItem("selectedCompany", JSON.stringify(created));
+  if (setSelectedCompany) setSelectedCompany(created);
+  if (setUser)
+    setUser((prev: any) => ({ ...prev, companies: allCompanies }));
+}
   };
 
   return (
