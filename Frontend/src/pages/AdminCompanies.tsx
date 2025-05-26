@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 const AdminCompanies: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[] | { companies: any[] }>([]);
   const [editCompany, setEditCompany] = useState<any | null>(null);
   const token = localStorage.getItem("authToken");
 
