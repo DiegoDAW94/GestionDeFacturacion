@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import DataTable from '../components/DataTable';
-import Modal from '../components/Modal';
-import CompanyForm from '../components/CompanyForm';
-import { getCompanies, deleteCompany } from '../services/apiservices';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import DataTable from "../components/DataTable";
+import Modal from "../components/Modal";
+import CompanyForm from "../components/CompanyForm";
+import { getCompanies, deleteCompany } from "../services/apiservices";
+import { Link } from "react-router-dom";
 
-const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompany?: any }> = ({
-  setUser,
-  setSelectedCompany,
-  selectedCompany,
-}) => {
+const Company: React.FC<{
+  setUser?: any;
+  setSelectedCompany?: any;
+  selectedCompany?: any;
+}> = ({ setUser, setSelectedCompany, selectedCompany }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
   const [editCompany, setEditCompany] = useState<any | null>(null);
-  const token = localStorage.getItem('authToken');
-  
+  const token = localStorage.getItem("authToken");
 
   useEffect(() => {
     if (token) {
@@ -26,8 +25,8 @@ const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompa
 
   const columns = [
     {
-      key: 'name',
-      label: 'Nombre',
+      key: "name",
+      label: "Nombre",
       render: (row: any) => (
         <Link
           to={`/companies/${row.id}`}
@@ -37,9 +36,9 @@ const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompa
         </Link>
       ),
     },
-    { key: 'cif', label: 'NIF' },
-    { key: 'fiscal_address', label: 'Dirección fiscal' },
-    { key: 'email', label: 'Email' },
+    { key: "cif", label: "NIF" },
+    { key: "fiscal_address", label: "Dirección fiscal" },
+    { key: "email", label: "Email" },
   ];
 
   const handleEdit = (company: any) => {
@@ -47,47 +46,75 @@ const Company: React.FC<{ setUser?: any, setSelectedCompany?: any, selectedCompa
     setModalOpen(true);
   };
 
-const handleDelete = async (id: number) => {
-  const company = (companies.companies || companies).find((c: any) => c.id === id);
-  if (!company) return;
-  if (!window.confirm(`¿Seguro que quieres borrar la compañía "${company.name}"?`)) return;
-  try {
-    await deleteCompany(id, token);
-    const updatedCompanies = await getCompanies(token);
-    setCompanies(updatedCompanies.companies || updatedCompanies);
-
-    // Si la compañía borrada era la seleccionada, selecciona otra
-    if (selectedCompany && selectedCompany.id === id) {
-      const allCompanies = updatedCompanies.companies || updatedCompanies;
-      const newSelected = allCompanies.length > 0 ? allCompanies[0] : null;
-      if (setSelectedCompany) setSelectedCompany(newSelected);
-      if (newSelected) {
-        localStorage.setItem('selectedCompany', JSON.stringify(newSelected));
-      } else {
-        localStorage.removeItem('selectedCompany');
-      }
+  const handleDelete = async (id: number) => {
+    if (!token) {
+      alert(
+        "No hay token de autenticación. Por favor, inicia sesión de nuevo."
+      );
+      return;
     }
-    if (setUser) setUser((prev: any) => ({ ...prev, companies: updatedCompanies.companies || updatedCompanies }));
-  } catch (error) {
-    alert('Error al borrar la compañía');
-  }
-};
+    const companyList = Array.isArray(companies)
+      ? companies
+      : companies.companies;
+    const company = companyList.find((c: any) => c.id === id);
+    if (!company) return;
+    if (
+      !window.confirm(
+        `¿Seguro que quieres borrar la compañía "${company.name}"?`
+      )
+    )
+      return;
+    try {
+      await deleteCompany(id, token!);
+      const updatedCompanies = await getCompanies(token!);
+      const allCompanies = Array.isArray(updatedCompanies)
+        ? updatedCompanies
+        : updatedCompanies.companies;
+      setCompanies(allCompanies);
+
+      // Si la compañía borrada era la seleccionada, selecciona otra
+      if (selectedCompany && selectedCompany.id === id) {
+        const newSelected = allCompanies.length > 0 ? allCompanies[0] : null;
+        if (setSelectedCompany) setSelectedCompany(newSelected);
+        if (newSelected) {
+          localStorage.setItem("selectedCompany", JSON.stringify(newSelected));
+        } else {
+          localStorage.removeItem("selectedCompany");
+        }
+      }
+      if (setUser)
+        setUser((prev: any) => ({ ...prev, companies: allCompanies }));
+    } catch (error) {
+      alert("Error al borrar la compañía");
+    }
+  };
 
   const handleSaved = async (newCompany: any) => {
+    if (!token) {
+      alert(
+        "No hay token de autenticación. Por favor, inicia sesión de nuevo."
+      );
+      return;
+    }
     setModalOpen(false);
     setEditCompany(null);
-    const updatedCompanies = await getCompanies(token);
-    setCompanies(updatedCompanies.companies || updatedCompanies);
+    const updatedCompanies = await getCompanies(token!);
+    const allCompanies = Array.isArray(updatedCompanies)
+      ? updatedCompanies
+      : updatedCompanies.companies;
+    setCompanies(allCompanies);
 
     // Busca la nueva compañía en la lista actualizada
-    const allCompanies = updatedCompanies.companies || updatedCompanies;
     const created = allCompanies.find(
-      (c: any) => c.id === newCompany.id || (c.name === newCompany.name && c.cif === newCompany.cif)
+      (c: any) =>
+        c.id === newCompany.id ||
+        (c.name === newCompany.name && c.cif === newCompany.cif)
     );
     if (created) {
-      localStorage.setItem('selectedCompany', JSON.stringify(created));
+      localStorage.setItem("selectedCompany", JSON.stringify(created));
       if (setSelectedCompany) setSelectedCompany(created);
-      if (setUser) setUser((prev: any) => ({ ...prev, companies: allCompanies }));
+      if (setUser)
+        setUser((prev: any) => ({ ...prev, companies: allCompanies }));
     }
   };
 
@@ -109,13 +136,13 @@ const handleDelete = async (id: number) => {
           setModalOpen(false);
           setEditCompany(null);
         }}
-        title={editCompany ? 'Editar Compañía' : 'Crear Compañía'}
+        title={editCompany ? "Editar Compañía" : "Crear Compañía"}
       >
         <CompanyForm company={editCompany} onSaved={handleSaved} />
       </Modal>
       <DataTable
         columns={columns}
-        data={companies.companies || companies}
+        data={Array.isArray(companies) ? companies : companies.companies}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

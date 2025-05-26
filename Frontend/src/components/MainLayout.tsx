@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import SideNavBar from './SideNavBar';
-import DropdownSelector from './DropdownSelector';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import SideNavBar from "./SideNavBar";
+import DropdownSelector from "./DropdownSelector";
 
 const SIDENAV_WIDTH = 64; // ancho colapsado (px)
 const SIDENAV_WIDTH_EXPANDED = 240; // ancho expandido (px)
@@ -12,54 +12,62 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // El estado de la barra lateral se guarda en localStorage para persistencia entre rutas
   const [sideNavExpanded, setSideNavExpanded] = useState(() => {
-    const stored = localStorage.getItem('sideNavExpanded');
+    const stored = localStorage.getItem("sideNavExpanded");
     return stored ? JSON.parse(stored) : false;
   });
   const navigate = useNavigate();
 
   // Cargar usuario y compañía seleccionada al montar
   useEffect(() => {
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      const storedCompany = localStorage.getItem('selectedCompany');
+      const storedCompany = localStorage.getItem("selectedCompany");
       if (storedCompany) {
         setSelectedCompany(JSON.parse(storedCompany));
       } else if (parsedUser.companies && parsedUser.companies.length > 0) {
         setSelectedCompany(parsedUser.companies[0]);
-        localStorage.setItem('selectedCompany', JSON.stringify(parsedUser.companies[0]));
+        localStorage.setItem(
+          "selectedCompany",
+          JSON.stringify(parsedUser.companies[0])
+        );
       }
     }
   }, []);
 
   // Actualizar compañías y compañía seleccionada cuando cambian en el backend
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (token) {
-      fetch('http://127.0.0.1:8000/api/my-companies', {
+      fetch("http://127.0.0.1:8000/api/my-companies", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.companies) {
             setUser((prev: any) => ({ ...prev, companies: data.companies }));
 
             // Sincronizar selectedCompany con la nueva lista
-            const storedCompany = localStorage.getItem('selectedCompany');
+            const storedCompany = localStorage.getItem("selectedCompany");
             let companyToSelect = null;
             if (storedCompany) {
               const storedCompanyObj = JSON.parse(storedCompany);
-              companyToSelect = data.companies.find((c: any) => c.id === storedCompanyObj.id);
+              companyToSelect = data.companies.find(
+                (c: any) => c.id === storedCompanyObj.id
+              );
             }
             if (!companyToSelect && data.companies.length > 0) {
               companyToSelect = data.companies[0];
             }
             setSelectedCompany(companyToSelect);
             if (companyToSelect) {
-              localStorage.setItem('selectedCompany', JSON.stringify(companyToSelect));
+              localStorage.setItem(
+                "selectedCompany",
+                JSON.stringify(companyToSelect)
+              );
             }
           }
         });
@@ -69,26 +77,31 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Manejar el cambio de estado de la barra lateral y guardarlo en localStorage
   const handleSideNavToggle = (expanded: boolean) => {
     setSideNavExpanded(expanded);
-    localStorage.setItem('sideNavExpanded', JSON.stringify(expanded));
+    localStorage.setItem("sideNavExpanded", JSON.stringify(expanded));
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('selectedCompany');
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("selectedCompany");
     setUser(null);
     setSelectedCompany(null);
-    navigate('/login');
+    navigate("/login");
   };
 
   // Calcula el margen izquierdo según el estado del SideNavBar
-  const mainMarginLeft = sideNavExpanded ? SIDENAV_WIDTH_EXPANDED : SIDENAV_WIDTH;
+  const mainMarginLeft = sideNavExpanded
+    ? SIDENAV_WIDTH_EXPANDED
+    : SIDENAV_WIDTH;
 
   return (
     <div className="flex h-screen">
       {/* Barra superior */}
       <div className="bg-gray-800 text-white fixed top-0 left-0 w-full flex justify-between items-center px-4 py-3 z-10">
-        <Link to="/" className="text-blue-400 text-xl font-bold hover:underline">
+        <Link
+          to="/"
+          className="text-blue-400 text-xl font-bold hover:underline"
+        >
           Invoquio
         </Link>
         <div className="flex items-center text-white space-x-4">
@@ -98,10 +111,17 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {user.companies && user.companies.length > 0 && (
                 <DropdownSelector
                   options={user.companies}
-                  value={user.companies.find((c: any) => c.id === selectedCompany?.id) || null}
+                  value={
+                    user.companies.find(
+                      (c: any) => c.id === selectedCompany?.id
+                    ) || null
+                  }
                   onChange={(company) => {
                     setSelectedCompany(company);
-                    localStorage.setItem('selectedCompany', JSON.stringify(company));
+                    localStorage.setItem(
+                      "selectedCompany",
+                      JSON.stringify(company)
+                    );
                   }}
                 />
               )}
@@ -139,16 +159,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         className="flex-1 flex flex-col mt-16 transition-all duration-300"
         style={{ marginLeft: mainMarginLeft }}
       >
-        <main className="flex-1 p-4 bg-gray-100">
-          {React.isValidElement(children)
-            ? React.cloneElement(children, {
-                selectedCompany,
-                setSelectedCompany,
-                setUser,
-                key: selectedCompany?.id,
-              })
-            : children}
-        </main>
+        <main className="flex-1 p-4 bg-gray-100">{children}</main>
       </div>
     </div>
   );

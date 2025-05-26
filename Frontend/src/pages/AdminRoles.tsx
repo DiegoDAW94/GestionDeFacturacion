@@ -1,31 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import Modal from '../components/Modal';
-import DataTable from '../components/DataTable';
-import RolesForm from '../components/RolesForm';
-import { getRoles, deleteRole } from '../services/apiservices';
+import React, { useState, useEffect } from "react";
+import Modal from "../components/Modal";
+import DataTable from "../components/DataTable";
+import RolesForm from "../components/RolesForm";
+import { getRoles, deleteRole } from "../services/apiservices";
 
 const AdminRoles: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [roles, setRoles] = useState<any[]>([]);
   const [editRole, setEditRole] = useState<any | null>(null);
-  const [filter, setFilter] = useState('');
-  const token = localStorage.getItem('authToken');
+  const [filter, setFilter] = useState("");
+  const token = localStorage.getItem("authToken");
 
   useEffect(() => {
     if (token) {
-      getRoles(token)
-        .then(setRoles)
-        .catch(console.error);
+      getRoles(token).then(setRoles).catch(console.error);
     }
   }, [token]);
 
-  const filteredRoles = roles.filter(role =>
+  const filteredRoles = roles.filter((role) =>
     role.name.toLowerCase().includes(filter.toLowerCase())
   );
 
   const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'name', label: 'Nombre' },
+    { key: "id", label: "ID" },
+    { key: "name", label: "Nombre" },
   ];
 
   const handleEdit = (role: any) => {
@@ -33,23 +31,36 @@ const AdminRoles: React.FC = () => {
     setModalOpen(true);
   };
 
- const handleDelete = async (id: number) => {
-  const role = roles.find((r) => r.id === id);
-  if (!role) return;
-  if (!window.confirm(`¿Seguro que quieres borrar el rol "${role.name}"?`)) return;
-  try {
-    await deleteRole(id, token);
-    const updatedRoles = await getRoles(token);
-    setRoles(updatedRoles);
-  } catch (error) {
-    alert('Error al borrar el rol');
-  }
-};
+  const handleDelete = async (id: number) => {
+    if (!token) {
+      alert(
+        "No hay token de autenticación. Por favor, inicia sesión de nuevo."
+      );
+      return;
+    }
+    const role = roles.find((r) => r.id === id);
+    if (!role) return;
+    if (!window.confirm(`¿Seguro que quieres borrar el rol "${role.name}"?`))
+      return;
+    try {
+      await deleteRole(id, token!);
+      const updatedRoles = await getRoles(token!);
+      setRoles(updatedRoles);
+    } catch (error) {
+      alert("Error al borrar el rol");
+    }
+  };
 
   const handleSaved = async () => {
+    if (!token) {
+      alert(
+        "No hay token de autenticación. Por favor, inicia sesión de nuevo."
+      );
+      return;
+    }
     setModalOpen(false);
     setEditRole(null);
-    const updatedRoles = await getRoles(token);
+    const updatedRoles = await getRoles(token!);
     setRoles(updatedRoles);
   };
 
@@ -58,13 +69,19 @@ const AdminRoles: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6">Gestión de Roles</h1>
       <button
         className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
-        onClick={() => { setModalOpen(true); setEditRole(null); }}
+        onClick={() => {
+          setModalOpen(true);
+          setEditRole(null);
+        }}
       >
         Crear Rol
       </button>
       <Modal
         isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); setEditRole(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditRole(null);
+        }}
         title={editRole ? "Editar Rol" : "Crear Rol"}
       >
         <RolesForm role={editRole} onSaved={handleSaved} />
@@ -74,12 +91,12 @@ const AdminRoles: React.FC = () => {
           type="text"
           placeholder="Buscar..."
           value={filter}
-          onChange={e => setFilter(e.target.value)}
+          onChange={(e) => setFilter(e.target.value)}
           className="px-2 py-1 border rounded w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
         />
         <button
           className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
-          onClick={() => setFilter('')}
+          onClick={() => setFilter("")}
           type="button"
         >
           Reset Filter

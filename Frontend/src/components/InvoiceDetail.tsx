@@ -7,7 +7,6 @@ import html2canvas from 'html2canvas';
 const baseTextStyle = { fontSize: 14, margin: 0, padding: 0, fontFamily: "Arial, sans-serif" };
 const labelStyle = { ...baseTextStyle, fontWeight: "bold" };
 const valueStyle = { ...baseTextStyle, fontWeight: "normal" };
-const cellStyle = { border: "1px solid #222", padding: "10px 8px 12px 8px", ...baseTextStyle };
 
 const InvoiceDetail: React.FC = () => {
   const { id } = useParams();
