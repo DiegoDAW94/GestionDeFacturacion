@@ -8,4 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(), // Agrega el plugin de Tailwind CSS
   ],
+  base:'/app/'
 })

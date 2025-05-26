@@ -33,7 +33,7 @@ import AdminItems from './pages/AdminItems';
 
 const AppRouter: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/app">
       <Routes>
         <Route
           path="/admin"
