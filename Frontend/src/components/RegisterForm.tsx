@@ -31,7 +31,7 @@ const RegisterForm: React.FC = () => {
       console.log('Registro exitoso:', data);
 
       // Redirigir usando React Router
-      navigate('app/login');
+      navigate('/login');
     } catch (error: any) {
       console.error('Error al registrarse:', error);
       setError(error.message || 'Error al registrarse');

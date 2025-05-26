@@ -88,34 +88,43 @@ export const createCompany = async (
   },
   token: string
 ) => {
-  console.log("URL:", `${API_BASE_URL}/companies`); // Verificar la URL
-  console.log("Datos enviados al backend:", companyData); // Verificar los datos enviados
-  console.log("Token enviado:", token); // Verificar el token
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  console.log("URL:", `${API_BASE_URL}/companies`);
+  console.log("Datos enviados al backend:", companyData);
+  console.log("Token enviado:", token);
 
-  const response = await fetch(`${API_BASE_URL}/companies`, {
+  const res = await fetch(`${API_BASE_URL}/companies`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(companyData),
-  }).then((res) => {
-    if (res.headers.get("content-type")?.includes("application/json")) {
-      return res.json();
-    } else {
-      throw new Error("Respuesta no es JSON");
-    }
   });
-  console.log("Estado de la respuesta:", response.status); // Verificar el código de estado HTTP
-  console.log("Respuesta completa:", response); // Verificar la respuesta completa
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error("Error del servidor:", errorData); // Verificar el error del servidor
-    throw new Error(errorData.message || "Error al crear la compañía");
+  // Guarda el status y content-type antes de consumir el body
+  const contentType = res.headers.get("content-type");
+  const status = res.status;
+
+  let data;
+  if (contentType && contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    // Si no es JSON, probablemente es HTML (error de autenticación/redirección)
+    const text = await res.text();
+    console.error("Respuesta no JSON:", text);
+    throw new Error("Respuesta no es JSON. ¿Token inválido o ruta incorrecta?");
   }
 
-  return response.json();
+  console.log("Estado de la respuesta:", status);
+  console.log("Respuesta completa:", data);
+
+  if (!res.ok) {
+    // Si el backend devuelve error, muestra el mensaje
+    throw new Error(data.message || data.error || "Error al crear la compañía");
+  }
+
+  return data;
 };
 
 export const updateCompany = async (
