@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-05-2025 a las 02:08:29
+-- Tiempo de generación: 26-05-2025 a las 03:46:11
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -47,8 +47,7 @@ CREATE TABLE `clients` (
 
 INSERT INTO `clients` (`id`, `name`, `nif`, `fiscal_address`, `city`, `postal_code`, `province`, `email`, `company_id`, `created_at`, `updated_at`) VALUES
 (1, 'Cliente 1', '1235467c', 'C/Estambrera 15', 'Logroño', '26006', 'A Coruña', 'cliente1@email.com', 2, '2025-05-21 16:45:15', '2025-05-21 16:45:15'),
-(2, 'cliente 2', '123546712c', 'Calle Lugo', 'Logroño', '26007', 'La Rioja', 'cliente2@email.com', 2, '2025-05-21 16:45:33', '2025-05-21 16:45:33'),
-(3, 'clientetest', '12354627c', 'C/Lugo, 4', 'Logroño', '26007', 'A Coruña', 'clientetest@email.com', 7, '2025-05-21 21:41:29', '2025-05-21 21:41:29');
+(2, 'Cliente 2', '123546712c', 'Calle Lugo', 'Logroño', '26007', 'La Rioja', 'cliente2@email.com', 2, '2025-05-21 16:45:33', '2025-05-25 23:18:33');
 
 -- --------------------------------------------------------
 
@@ -80,8 +79,7 @@ CREATE TABLE `companies` (
 
 INSERT INTO `companies` (`id`, `name`, `legal_name`, `cif`, `fiscal_address`, `social_address`, `city`, `postal_code`, `province`, `email`, `telefono`, `invoice_prefix`, `owner_id`, `created_at`, `updated_at`) VALUES
 (1, 'Admin', 'Admin', '12312425', 'admin', 'admin', 'admin', '12345', 'admin', 'admin@email.com', '12345678', 'ADMIN', 1, '2025-05-21 16:41:20', '2025-05-21 16:41:20'),
-(2, 'Company 1', 'Company 1', '160863994X', 'C/Lugo, 4', 'C/Lugo, 4', 'Logroño', '26007', 'La Rioja', 'company1@email.com', '600878443', 'FACT', 2, '2025-05-21 16:43:32', '2025-05-21 16:43:32'),
-(3, 'Company 2', 'Company 2', '12353425z', 'C/Lugo, 4', 'C/Lugo, 4', 'Logroño', '26007', 'Please select', 'compania2@email.com', '600878443', 'INV', 2, '2025-05-21 20:26:30', '2025-05-21 20:26:30'),
+(2, 'Company 1', 'Company 1', '160863994X', 'C/Lugo, 4', 'C/Lugo, 4', 'Logroño', '26007', 'La Rioja', 'company1@email.com', '600878443', 'FACT', 2, '2025-05-21 16:43:32', '2025-05-25 23:18:12'),
 (7, 'testcomp1', 'testcomp1', '160863994asdX', 'C/Lugo, 4', 'C/Lugo, 4', 'Logroño', '26007', 'Please select', 'testcomp@email.com', '600878443', 'test', 3, '2025-05-21 21:41:04', '2025-05-21 21:41:04');
 
 -- --------------------------------------------------------
@@ -127,10 +125,9 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`id`, `company_id`, `user_id`, `client_id`, `number`, `date`, `operation_date`, `custom_items`, `base_amount`, `tax_amount`, `total`, `created_at`, `updated_at`) VALUES
-(2, 2, 2, 1, 'F-1747853485', '2025-05-21', '2025-05-21', '[{\"description\":\"producto personalizado\",\"quantity\":1,\"unit_price\":50}]', 82.64, 17.36, 100.00, '2025-05-21 16:51:25', '2025-05-21 16:51:25'),
-(3, 2, 2, 2, 'F-1747853566', '2025-05-21', '2025-05-21', '[{\"description\":\"PERSONALIZADO ITEM\",\"quantity\":1,\"unit_price\":10}]', 90.91, 19.09, 110.00, '2025-05-21 16:52:46', '2025-05-21 16:52:46'),
-(5, 2, 2, 1, 'F-1747865485', '2025-05-22', '2025-05-22', '[]', 16.53, 3.47, 20.00, '2025-05-21 20:11:25', '2025-05-21 20:11:25'),
-(6, 7, 3, 3, 'F-1747871997', '2025-05-22', '2025-05-22', '[]', 10.91, 1.09, 12.00, '2025-05-21 21:59:57', '2025-05-21 21:59:57');
+(7, 2, 1, 1, 'FACT-1', '2025-05-25', '2025-05-25', '[{\"description\":\"Servicio personalizado\",\"quantity\":2,\"unit_price\":2}]', 342.15, 71.85, 414.00, '2025-05-25 14:08:33', '2025-05-25 20:27:16'),
+(11, 2, 2, 2, 'FACT-2', '2025-05-26', '2025-05-26', '[]', 264.46, 55.54, 320.00, '2025-05-25 22:32:16', '2025-05-25 23:01:42'),
+(13, 2, 2, 1, 'FACT-3', '2025-05-26', '2025-05-26', '[]', 173.55, 36.45, 210.00, '2025-05-25 23:17:26', '2025-05-25 23:17:26');
 
 -- --------------------------------------------------------
 
@@ -155,12 +152,10 @@ CREATE TABLE `invoice_items` (
 --
 
 INSERT INTO `invoice_items` (`id`, `invoice_id`, `item_id`, `name`, `description`, `price`, `quantity`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, 'producto 1', 'producto 1 descripcion', 10.00, 1, '2025-05-21 16:51:25', '2025-05-21 16:51:25'),
-(2, 2, 2, 'producto 2', 'producto 2 descripcion', 20.00, 2, '2025-05-21 16:51:25', '2025-05-21 16:51:25'),
-(3, 3, 4, 'servicio 2', 'servicio 2 descripcion', 40.00, 1, '2025-05-21 16:52:46', '2025-05-21 16:52:46'),
-(4, 3, 3, 'servicio 1', 'servicio 1 descripcion', 30.00, 2, '2025-05-21 16:52:46', '2025-05-21 16:52:46'),
-(6, 5, 2, 'producto 2', 'producto 2 descripcion', 20.00, 1, '2025-05-21 20:11:25', '2025-05-21 20:11:25'),
-(7, 6, 5, 'testitem', '123', 12.00, 1, '2025-05-21 21:59:57', '2025-05-21 21:59:57');
+(13, 7, 2, 'producto 2', 'producto 2 descripcion', 20.00, 20, '2025-05-25 20:27:16', '2025-05-25 20:27:16'),
+(14, 7, 1, 'producto 1', 'producto 1 descripcion', 10.00, 1, '2025-05-25 20:27:16', '2025-05-25 20:27:16'),
+(16, 11, 4, 'servicio 2update', 'servicio 2 descripcion', 40.00, 8, '2025-05-25 23:01:42', '2025-05-25 23:01:42'),
+(19, 13, 3, 'servicio 1', 'servicio 1 descripcion', 30.00, 7, '2025-05-25 23:17:26', '2025-05-25 23:17:26');
 
 -- --------------------------------------------------------
 
@@ -182,10 +177,9 @@ CREATE TABLE `invoice_taxes` (
 --
 
 INSERT INTO `invoice_taxes` (`id`, `invoice_id`, `tax_id`, `amount`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, 0.00, NULL, NULL),
-(2, 3, 1, 0.00, NULL, NULL),
-(4, 5, 1, 0.00, NULL, NULL),
-(5, 6, 2, 0.00, NULL, NULL);
+(6, 7, 1, 0.00, NULL, NULL),
+(10, 11, 1, 0.00, NULL, NULL),
+(12, 13, 1, 0.00, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -211,8 +205,7 @@ INSERT INTO `items` (`id`, `company_id`, `name`, `description`, `price`, `create
 (1, 2, 'producto 1', 'producto 1 descripcion', 10.00, '2025-05-21 16:43:58', '2025-05-21 16:44:55'),
 (2, 2, 'producto 2', 'producto 2 descripcion', 20.00, '2025-05-21 16:44:11', '2025-05-21 16:44:11'),
 (3, 2, 'servicio 1', 'servicio 1 descripcion', 30.00, '2025-05-21 16:44:24', '2025-05-21 16:44:24'),
-(4, 2, 'servicio 2', 'servicio 2 descripcion', 40.00, '2025-05-21 16:44:42', '2025-05-21 16:44:42'),
-(5, 7, 'testitem', '123', 12.00, '2025-05-21 21:41:49', '2025-05-21 21:41:49');
+(4, 2, 'servicio 2update', 'servicio 2 descripcion', 40.00, '2025-05-21 16:44:42', '2025-05-25 19:42:54');
 
 -- --------------------------------------------------------
 
@@ -243,7 +236,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (10, '2025_04_27_180019_create_taxes_table', 1),
 (11, '2025_04_27_180023_create_invoice_taxes_table', 1),
 (12, '2025_04_27_181004_create_items_table', 1),
-(13, '2025_04_27_181011_create_invoice_items_table', 1);
+(13, '2025_04_27_181011_create_invoice_items_table', 1),
+(15, '2025_05_25_161340_create_printed_invoices_table', 2);
 
 -- --------------------------------------------------------
 
@@ -289,7 +283,49 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 (6, 'App\\Models\\User', 3, 'auth_token', 'debf235222de00e5a327e323d06747f41885dcd14b765d9670a06476c7e2c04a', '[\"*\"]', '2025-05-21 21:48:30', NULL, '2025-05-21 21:45:01', '2025-05-21 21:48:30'),
 (7, 'App\\Models\\User', 3, 'auth_token', '19e4d8aaf972d998963938c238a1a4addadde4a8bcd98dcf670a757d0be5984f', '[\"*\"]', '2025-05-21 21:52:50', NULL, '2025-05-21 21:52:23', '2025-05-21 21:52:50'),
 (8, 'App\\Models\\User', 3, 'auth_token', '0d602f769bfde6eee6a8a66981833482efb8a1c617853ca94080bc5326898adb', '[\"*\"]', '2025-05-21 21:55:41', NULL, '2025-05-21 21:55:40', '2025-05-21 21:55:41'),
-(9, 'App\\Models\\User', 3, 'auth_token', 'f958fc769d11c3ff4483c717c72fdab6e7dda65b722d15c7051a48ff34a17af8', '[\"*\"]', '2025-05-21 22:04:33', NULL, '2025-05-21 21:59:21', '2025-05-21 22:04:33');
+(9, 'App\\Models\\User', 3, 'auth_token', 'f958fc769d11c3ff4483c717c72fdab6e7dda65b722d15c7051a48ff34a17af8', '[\"*\"]', '2025-05-24 17:36:42', NULL, '2025-05-21 21:59:21', '2025-05-24 17:36:42'),
+(10, 'App\\Models\\User', 5, 'auth_token', '6198be56a106d77b0f9d3b2f7be4cb3be5fb0d59704e30e613d5f788d10c0f99', '[\"*\"]', '2025-05-24 17:45:13', NULL, '2025-05-24 17:41:33', '2025-05-24 17:45:13'),
+(11, 'App\\Models\\User', 4, 'auth_token', '63bc1c9466f40a2a22e2b9c9edace464e6c78fe3b2979340b5907b5924b03c6f', '[\"*\"]', '2025-05-24 18:29:42', NULL, '2025-05-24 17:53:02', '2025-05-24 18:29:42'),
+(12, 'App\\Models\\User', 2, 'auth_token', '8e1eb1dc1e90f9d23c50f91fbeebb34173d3f999d5250ff2e8a99dcf76b5c641', '[\"*\"]', '2025-05-25 14:02:08', NULL, '2025-05-24 18:29:52', '2025-05-25 14:02:08'),
+(13, 'App\\Models\\User', 2, 'auth_token', 'd84460609f86561dd437b3639c6a12c0626f110ed1c2937d739142e81d7eddd1', '[\"*\"]', '2025-05-25 16:25:24', NULL, '2025-05-25 14:02:55', '2025-05-25 16:25:24'),
+(14, 'App\\Models\\User', 2, 'auth_token', '1afd23a06b9a7f107546e536584ab587a2956ffb4105803b0478c29d1425c099', '[\"*\"]', '2025-05-25 16:33:48', NULL, '2025-05-25 16:31:42', '2025-05-25 16:33:48'),
+(15, 'App\\Models\\User', 2, 'auth_token', '2a8a5dc2b963da0ac46c9a69feeb72dfdcf681a640a726a9f2615abfe6434348', '[\"*\"]', '2025-05-25 16:41:35', NULL, '2025-05-25 16:34:11', '2025-05-25 16:41:35'),
+(16, 'App\\Models\\User', 7, 'auth_token', '6eec33b5e0be2c7446efec61bf5c4d409f5a364520a9062e39221eef87827f14', '[\"*\"]', '2025-05-25 16:47:06', NULL, '2025-05-25 16:46:19', '2025-05-25 16:47:06'),
+(17, 'App\\Models\\User', 4, 'auth_token', '3a16a5072a5d537c7c71b8c4239f2c6c782748763e61c1bf52f11217d2e2f65c', '[\"*\"]', '2025-05-25 16:47:24', NULL, '2025-05-25 16:47:19', '2025-05-25 16:47:24'),
+(18, 'App\\Models\\User', 8, 'auth_token', '6d121464021098ba24d40fd5de811f5b9746fe316135eb2ad3d95282de0e9afb', '[\"*\"]', '2025-05-25 17:19:38', NULL, '2025-05-25 16:48:04', '2025-05-25 17:19:38'),
+(19, 'App\\Models\\User', 1, 'auth_token', 'a63a951e803d70d0a1bddbd50996539cc1e0637473a5447dc6c3e15f3c6261c3', '[\"*\"]', '2025-05-25 17:20:36', NULL, '2025-05-25 17:19:46', '2025-05-25 17:20:36'),
+(20, 'App\\Models\\User', 1, 'auth_token', 'b1901e8511304e70c09e86d823b524273c8d940bb2202a89e2d5d3b0dc20c149', '[\"*\"]', '2025-05-25 17:20:45', NULL, '2025-05-25 17:20:44', '2025-05-25 17:20:45'),
+(21, 'App\\Models\\User', 1, 'auth_token', '711197a7280ffbf17d2604a8781c8adce1ca01b56a2d75193b61f5e3fe3c0d65', '[\"*\"]', '2025-05-25 17:22:44', NULL, '2025-05-25 17:22:44', '2025-05-25 17:22:44'),
+(22, 'App\\Models\\User', 1, 'auth_token', '0c17b422823de39a6873ed3af2ce2021ab3a9ff7e6a47c8a0d3ba6bf9ebd5861', '[\"*\"]', '2025-05-25 17:26:44', NULL, '2025-05-25 17:26:12', '2025-05-25 17:26:44'),
+(23, 'App\\Models\\User', 1, 'auth_token', 'dde721acffda0219574f84939b8c1147d2a8c1cec23844af55ecbf838354737f', '[\"*\"]', '2025-05-25 20:59:06', NULL, '2025-05-25 17:36:50', '2025-05-25 20:59:06'),
+(24, 'App\\Models\\User', 2, 'auth_token', 'c379735de919d34dbc3933b9297d0b684fd6824d68a2f54feca2f67124d1888a', '[\"*\"]', '2025-05-25 22:25:28', NULL, '2025-05-25 21:05:13', '2025-05-25 22:25:28'),
+(25, 'App\\Models\\User', 2, 'auth_token', '27c405663ef33dc38a8c6b0129432bc7db66f21396b204ec78e8f9a2c9b7a9ba', '[\"*\"]', '2025-05-25 23:19:04', NULL, '2025-05-25 22:26:10', '2025-05-25 23:19:04'),
+(26, 'App\\Models\\User', 1, 'auth_token', '027163d3773e3d5ac89bf8417016c7f0165f03d6c1c2999288e7e45569d4f31b', '[\"*\"]', '2025-05-25 23:22:03', NULL, '2025-05-25 23:20:02', '2025-05-25 23:22:03'),
+(27, 'App\\Models\\User', 2, 'auth_token', 'aba8439e0750e8c440df3b787f955493caee018ec56e0c94f34c5d5ee29dcb1f', '[\"*\"]', '2025-05-25 23:30:33', NULL, '2025-05-25 23:22:39', '2025-05-25 23:30:33');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `printed_invoices`
+--
+
+CREATE TABLE `printed_invoices` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `number` varchar(30) DEFAULT NULL,
+  `invoice_id` bigint(20) UNSIGNED NOT NULL,
+  `batch_id` varchar(50) DEFAULT NULL,
+  `printed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `printed_invoices`
+--
+
+INSERT INTO `printed_invoices` (`id`, `number`, `invoice_id`, `batch_id`, `printed_at`, `created_at`, `updated_at`) VALUES
+(33, 'FACT-4', 7, 'batch_6833beed182df4.45964547', '2025-05-25 23:07:57', '2025-05-25 23:07:57', '2025-05-25 23:07:57'),
+(34, 'FACT-5', 11, 'batch_6833beed182df4.45964547', '2025-05-25 23:07:57', '2025-05-25 23:07:57', '2025-05-25 23:07:57');
 
 -- --------------------------------------------------------
 
@@ -336,7 +372,7 @@ INSERT INTO `taxes` (`id`, `name`, `percentage`, `created_at`, `updated_at`) VAL
 (2, 'IVA Reducido', 10.00, NULL, NULL),
 (3, 'IGIC', 7.00, NULL, NULL),
 (4, 'IGIC Reducido', 3.00, NULL, NULL),
-(5, 'Tipo Cero', 0.00, NULL, NULL);
+(5, 'Tipo Cero', 0.00, NULL, '2025-05-25 20:51:48');
 
 -- --------------------------------------------------------
 
@@ -360,7 +396,11 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `created_at`, `updated_at`) VALUES
 (1, 'Admin', 'admin@email.com', '$2y$12$J5gyzWBmVM4.CJQnYr4jeelva.VIpfw7Dq82m0v.hvx9DXj7f8VzG', '2025-05-21 16:39:18', '2025-05-21 16:39:18'),
 (2, 'Diego', 'diego@email.com', '$2y$12$fhwKyD7ggG2R1ibsJDCMYup3.jKpRN7lFeBc.p/Q0HI9gLw1b9zKK', '2025-05-21 16:42:36', '2025-05-21 16:42:36'),
-(3, 'test', 'test@email.com', '$2y$12$bADKr8xIUT/z5KpwpNeji.O6YBspu7pH2mxY31SXfnIKSKRaNeY1S', '2025-05-21 21:06:49', '2025-05-21 21:06:49');
+(3, 'test', 'test@email.com', '$2y$12$bADKr8xIUT/z5KpwpNeji.O6YBspu7pH2mxY31SXfnIKSKRaNeY1S', '2025-05-21 21:06:49', '2025-05-21 21:06:49'),
+(4, 'Trabajador', 'trabajador@email.com', '$2y$12$gSs8/mB//Rhke0OXNji6FOfZKGPSBE/F/EpcGC0iTMASxdTZL7j5m', '2025-05-24 17:36:43', '2025-05-24 17:36:43'),
+(5, 'FuriaLatina1', 'jota@email.com', '$2y$12$1gPbL99m73rJKTdq5bWggOELx9Rk9wB7rCOT8M6iDGSeIP8if9Y.K', '2025-05-24 17:41:26', '2025-05-25 20:38:14'),
+(6, 'trabajadejota', 'trabajador2@email.com', '$2y$12$lnectkG4cavMVjNQiUm4sO/Vxb.r8CK1/oMY6Fo5Waly9cvr4.Y4q', '2025-05-24 17:43:06', '2025-05-24 17:43:06'),
+(7, 'sincompania', 'sincompania@email.com', '$2y$12$AF2iRMPT9Bn/ZYhPZGhVHOMUebEa2fvXlFZwBlvJJAo.wUqU.wLq6', '2025-05-25 16:46:13', '2025-05-25 16:46:13');
 
 -- --------------------------------------------------------
 
@@ -383,8 +423,8 @@ CREATE TABLE `user_roles` (
 INSERT INTO `user_roles` (`user_id`, `role_id`, `company_id`, `created_at`, `updated_at`) VALUES
 (1, 1, 1, '2025-05-21 16:41:20', '2025-05-21 16:41:20'),
 (2, 2, 2, '2025-05-21 16:43:32', '2025-05-21 16:43:32'),
-(2, 2, 3, '2025-05-21 20:26:30', '2025-05-21 20:26:30'),
-(3, 2, 7, '2025-05-21 21:41:04', '2025-05-21 21:41:04');
+(3, 2, 7, '2025-05-21 21:41:04', '2025-05-21 21:41:04'),
+(4, 3, 7, '2025-05-24 17:36:43', '2025-05-24 17:36:43');
 
 --
 -- Índices para tablas volcadas
@@ -464,6 +504,14 @@ ALTER TABLE `personal_access_tokens`
   ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
 
 --
+-- Indices de la tabla `printed_invoices`
+--
+ALTER TABLE `printed_invoices`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `printed_invoices_invoice_id_foreign` (`invoice_id`),
+  ADD KEY `printed_invoices_batch_id_index` (`batch_id`);
+
+--
 -- Indices de la tabla `roles`
 --
 ALTER TABLE `roles`
@@ -498,13 +546,13 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT de la tabla `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `failed_jobs`
@@ -516,55 +564,61 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT de la tabla `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `invoice_items`
 --
 ALTER TABLE `invoice_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `invoice_taxes`
 --
 ALTER TABLE `invoice_taxes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT de la tabla `printed_invoices`
+--
+ALTER TABLE `printed_invoices`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `taxes`
 --
 ALTER TABLE `taxes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
@@ -609,6 +663,12 @@ ALTER TABLE `invoice_taxes`
 --
 ALTER TABLE `items`
   ADD CONSTRAINT `items_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `printed_invoices`
+--
+ALTER TABLE `printed_invoices`
+  ADD CONSTRAINT `printed_invoices_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `user_roles`
