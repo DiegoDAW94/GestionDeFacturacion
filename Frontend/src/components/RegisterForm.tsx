@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { register } from '../services/apiservices'; // Importar la función de registro del apiservice
 import InputField from './InputField'; // Importar el componente InputField
+import { useNavigate } from 'react-router-dom';
 
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,8 @@ const RegisterForm: React.FC = () => {
     password: '',
     password_confirmation: '',
   });
+    const navigate = useNavigate();
+
 
   const [error, setError] = useState<string | null>(null);
 
@@ -21,14 +24,14 @@ const RegisterForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Limpiar errores previos
+    setError(null);
 
     try {
-      const data = await register(formData); // Llamar a la función de registro del servicio
+      const data = await register(formData);
       console.log('Registro exitoso:', data);
 
-      // Redirigir al usuario al login después del registro
-      window.location.href = '/login';
+      // Redirigir usando React Router
+      navigate('/login');
     } catch (error: any) {
       console.error('Error al registrarse:', error);
       setError(error.message || 'Error al registrarse');

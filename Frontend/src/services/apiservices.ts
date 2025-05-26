@@ -48,6 +48,14 @@ export const getCompanies = async (token: string) => {
   });
   return handleResponse(response);
 };
+export async function getMyCompanies(token: string) {
+  const res = await fetch(`${API_BASE_URL}/my-companies`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.json();
+}
 
 export const getCompanyById = async (companyId: number, token: string) => {
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {

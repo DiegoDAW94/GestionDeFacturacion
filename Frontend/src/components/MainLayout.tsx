@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SideNavBar from "./SideNavBar";
 import DropdownSelector from "./DropdownSelector";
+import { getMyCompanies } from "../services/apiservices";
 
 const SIDENAV_WIDTH = 64; // ancho colapsado (px)
 const SIDENAV_WIDTH_EXPANDED = 240; // ancho expandido (px)
@@ -19,60 +20,69 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Cargar usuario y compañía seleccionada al montar
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      const storedCompany = localStorage.getItem("selectedCompany");
-      if (storedCompany) {
-        setSelectedCompany(JSON.parse(storedCompany));
-      } else if (parsedUser.companies && parsedUser.companies.length > 0) {
-        setSelectedCompany(parsedUser.companies[0]);
-        localStorage.setItem(
-          "selectedCompany",
-          JSON.stringify(parsedUser.companies[0])
-        );
-      }
+  const userData = localStorage.getItem("user");
+  if (userData) {
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    const storedCompany = localStorage.getItem("selectedCompany");
+    if (storedCompany) {
+      setSelectedCompany(JSON.parse(storedCompany));
+    } else if (
+      parsedUser.companies &&
+      Array.isArray(parsedUser.companies) &&
+      parsedUser.companies.length > 0
+    ) {
+      setSelectedCompany(parsedUser.companies[0]);
+      localStorage.setItem(
+        "selectedCompany",
+        JSON.stringify(parsedUser.companies[0])
+      );
+    } else {
+      setSelectedCompany(null);
+      localStorage.removeItem("selectedCompany");
     }
-  }, []);
+  } else {
+    setUser(null);
+    setSelectedCompany(null);
+  }
+}, []);
 
   // Actualizar compañías y compañía seleccionada cuando cambian en el backend
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      fetch("http://127.0.0.1:8000/api/my-companies", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.companies) {
-            setUser((prev: any) => ({ ...prev, companies: data.companies }));
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    getMyCompanies(token).then((data) => {
+      if (data.companies && Array.isArray(data.companies) && data.companies.length > 0) {
+        setUser((prev: any) => ({ ...prev, companies: data.companies }));
 
-            // Sincronizar selectedCompany con la nueva lista
-            const storedCompany = localStorage.getItem("selectedCompany");
-            let companyToSelect = null;
-            if (storedCompany) {
-              const storedCompanyObj = JSON.parse(storedCompany);
-              companyToSelect = data.companies.find(
-                (c: any) => c.id === storedCompanyObj.id
-              );
-            }
-            if (!companyToSelect && data.companies.length > 0) {
-              companyToSelect = data.companies[0];
-            }
-            setSelectedCompany(companyToSelect);
-            if (companyToSelect) {
-              localStorage.setItem(
-                "selectedCompany",
-                JSON.stringify(companyToSelect)
-              );
-            }
-          }
-        });
-    }
-  }, []);
+        // Sincronizar selectedCompany con la nueva lista
+        const storedCompany = localStorage.getItem("selectedCompany");
+        let companyToSelect = null;
+        if (storedCompany) {
+          const storedCompanyObj = JSON.parse(storedCompany);
+          companyToSelect = data.companies.find(
+            (c: any) => c.id === storedCompanyObj.id
+          );
+        }
+        if (!companyToSelect) {
+          companyToSelect = data.companies[0];
+        }
+        setSelectedCompany(companyToSelect);
+        if (companyToSelect) {
+          localStorage.setItem(
+            "selectedCompany",
+            JSON.stringify(companyToSelect)
+          );
+        }
+      } else {
+        // No hay compañías
+        setUser((prev: any) => ({ ...prev, companies: [] }));
+        setSelectedCompany(null);
+        localStorage.removeItem("selectedCompany");
+      }
+    });
+  }
+}, []);
 
   // Manejar el cambio de estado de la barra lateral y guardarlo en localStorage
   const handleSideNavToggle = (expanded: boolean) => {
