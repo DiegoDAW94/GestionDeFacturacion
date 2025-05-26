@@ -97,12 +97,12 @@ export const createCompany = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Accept": "application/json", // <-- Muy importante
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(companyData),
   });
 
-  // Guarda el status y content-type antes de consumir el body
   const contentType = res.headers.get("content-type");
   const status = res.status;
 
@@ -120,7 +120,6 @@ export const createCompany = async (
   console.log("Respuesta completa:", data);
 
   if (!res.ok) {
-    // Si el backend devuelve error, muestra el mensaje
     throw new Error(data.message || data.error || "Error al crear la compañía");
   }
 
