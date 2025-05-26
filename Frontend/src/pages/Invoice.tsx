@@ -142,7 +142,7 @@ const Invoice: React.FC = () => {
       return;
     try {
       await deleteInvoice(id, token!);
-      const updatedInvoices = await getInvoices(token!);
+      const updatedInvoices = await getInvoicesByCompany(selectedCompany.id, token!);
       setInvoices(updatedInvoices);
     } catch (error) {
       alert("Error al borrar la factura");
@@ -158,7 +158,7 @@ const Invoice: React.FC = () => {
     }
     setModalOpen(false);
     setEditInvoice(null);
-    const updatedInvoices = await getInvoices(token!);
+    const updatedInvoices = await getInvoicesByCompany(selectedCompany.id, token!);
     setInvoices(updatedInvoices);
   };
 

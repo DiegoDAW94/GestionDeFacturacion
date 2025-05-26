@@ -71,7 +71,7 @@ const Clients: React.FC = () => {
       return;
     try {
       await deleteClient(id, token!);
-      const updatedClients = await getClients(token!);
+      const updatedClients = await getClientsByCompany(selectedCompany.id, token!);
       setClients(updatedClients);
     } catch (error) {
       alert("Error al borrar el cliente");
@@ -87,7 +87,7 @@ const Clients: React.FC = () => {
     }
     setModalOpen(false);
     setEditClient(null);
-    const updatedClients = await getClients(token!);
+   const updatedClients = await getClientsByCompany(selectedCompany.id, token!);
     setClients(updatedClients);
   };
 
